@@ -139,8 +139,8 @@ npm.cmd --prefix services/frontend ci
 Set these variables in each backend terminal, or source them from a private local PowerShell file. These are localhost development values; credentials must match your backing services.
 
 ```powershell
-$env:DATABASE_URL = 'postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/failurelab'
-$env:RABBITMQ_URL = 'amqp://guest:guest@127.0.0.1:5672/%2F'
+$env:DATABASE_URL = Read-Host 'PostgreSQL DSN (postgresql+asyncpg://USER:PASSWORD@127.0.0.1:5432/failurelab)'
+$env:RABBITMQ_URL = Read-Host 'RabbitMQ DSN (amqp://USER:PASSWORD@127.0.0.1:5672/%2F)'
 $env:USE_MOCK_AI = 'true'
 $env:LOG_LEVEL = 'INFO'
 $env:UVICORN_HOST = '127.0.0.1'
@@ -265,11 +265,11 @@ The local run on **17 October 2026** used real Toxiproxy faults and deterministi
 
 | Check | Recorded result |
 |---|---|
-| Pre-fault P95 | **107.39279511818513ms** |
-| Fault P95, consecutive snapshots | **624.2387749754481ms**, **658.3514599857599ms**, **651.6474999275953ms** |
+| Pre-fault P95 | **107.39ms** |
+| Fault P95, consecutive snapshots | **624.24ms**, **658.35ms**, **651.65ms** |
 | Fault experiment | `ABORTED_SLO_BREACH` |
 | AI-proposed follow-up | Stopped with `MANUAL_STOP`; toxics `[]` |
-| Immediate zero-latency control | `COMPLETED`; maximum snapshot P95 **114.88507501563724ms** |
+| Immediate zero-latency control | `COMPLETED`; maximum snapshot P95 **114.89ms** |
 | Worker restarts / manual recovery | **0**; original worker PIDs and one consumer generation each |
 | Orders | **291 reserved**, 0 failed, 0 pending |
 | Unprocessed outbox events after drain | **0** |
