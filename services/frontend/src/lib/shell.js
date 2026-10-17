@@ -130,3 +130,25 @@ export function deriveHealthPillState({ data = null, error = null, loading = fal
     toxiproxyMode,
   };
 }
+
+/**
+ * Classifies an error from stopExperiment to detect if the experiment
+ * has already ended (due to watchdog auto-abort or completion race).
+ *
+ * @param {Error|string|null} error
+ * @returns {boolean}
+ */
+export function isExperimentAlreadyEndedError(error) {
+  if (!error) return false;
+  const msg = (typeof error === 'string' ? error : error?.message || '').toLowerCase();
+  return (
+    msg.includes('already finished') ||
+    msg.includes('already ended') ||
+    msg.includes('not found') ||
+    msg.includes('404') ||
+    msg.includes('no active experiment') ||
+    msg.includes('not running') ||
+    msg.includes('not in active')
+  );
+}
+

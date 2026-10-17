@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from './api/client';
 import { usePolling } from './hooks/usePolling';
 
@@ -11,13 +11,16 @@ import { EmergencyStopModal } from './components/shell/EmergencyStopModal.jsx';
 import { ErrorBanner } from './components/common/ErrorBanner.jsx';
 
 // Feature Views & Components
+import { DashboardView } from './components/dashboard/DashboardView.jsx';
 import TopologyBanner from './components/TopologyBanner.jsx';
 import ExperimentLauncher from './components/ExperimentLauncher.jsx';
 import ExperimentHistoryAndAIReport from './components/ExperimentHistoryAndAIReport.jsx';
 import { TopologyOverview } from './components/topology/TopologyOverview.jsx';
 import { SettingsView } from './components/settings/SettingsView.jsx';
 
-const LiveTelemetryPanel = lazy(() => import('./components/LiveTelemetryPanel.jsx'));
+// Lib Utilities
+import { appendMetricsPoint } from './lib/metricsBuffer.js';
+import { isExperimentAlreadyEndedError } from './lib/shell.js';
 
 export default function App({ client = api }) {
   const [activeScreen, setActiveScreen] = useState('dashboard');
@@ -28,7 +31,7 @@ export default function App({ client = api }) {
   const [uncertain, setUncertain] = useState(false);
   const mutation = useRef(null);
 
-  // Single Source of Truth Polling
+  // Single Source of Truth Polling for Experiments and Catalog
   const loadExperiments = useCallback(signal => client.getExperiments({ limit: 100, signal }), [client]);
   const loadCatalog = useCallback(signal => client.getExperimentCatalog({ signal }), [client]);
   const loadControllerReadiness = useCallback(signal => client.getControllerReadiness({ signal }), [client]);
@@ -45,11 +48,88 @@ export default function App({ client = api }) {
   const isRunning = experiment?.status === 'RUNNING';
   const blocked = !loaded || !catalog.data || Boolean(error) || uncertain;
 
+  // Single Telemetry & Traffic Polling Source
+  const [metrics, setMetrics] = useState(null);
+  const [metricsError, setMetricsError] = useState(null);
+  const [lastMetricsUpdated, setLastMetricsUpdated] = useState(null);
+  const [metricsBuffer, setMetricsBuffer] = useState([]);
+
+  const [traffic, setTraffic] = useState(null);
+  const [trafficBusy, setTrafficBusy] = useState(false);
+  const [trafficError, setTrafficError] = useState(null);
+  const trafficMutation = useRef(false);
+
+  const metricsSince = isRunning ? experiment.started_at : undefined;
+
+  // Single shared polling effect for metrics summary and traffic status
+  useEffect(() => {
+    const controller = new AbortController();
+    let timer;
+
+    async function pollTelemetry() {
+      const started = performance.now();
+      await Promise.allSettled([
+        client.getMetricsSummary({ signal: controller.signal, since: metricsSince })
+          .then(data => {
+            if (controller.signal.aborted) return;
+            const now = Date.now();
+            setMetrics(data);
+            setLastMetricsUpdated(now);
+            setMetricsError(null);
+            setMetricsBuffer(prev => appendMetricsPoint(prev, data, now));
+          })
+          .catch(err => {
+            if (controller.signal.aborted) return;
+            // On failure: retain last good data, set error banner, do NOT append null as 0
+            setMetricsError(err.message || 'Metrics polling failed');
+          }),
+
+        client.getTrafficStatus({ signal: controller.signal })
+          .then(data => {
+            if (controller.signal.aborted || trafficMutation.current) return;
+            setTraffic(data);
+            setTrafficError(null);
+          })
+          .catch(err => {
+            if (controller.signal.aborted || trafficMutation.current) return;
+            setTrafficError(err.message || 'Traffic status polling failed');
+          }),
+      ]);
+
+      if (!controller.signal.aborted) {
+        timer = setTimeout(pollTelemetry, Math.max(0, 2000 - (performance.now() - started)));
+      }
+    }
+
+    pollTelemetry();
+    return () => {
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, [client, metricsSince]);
+
   useEffect(() => () => mutation.current?.abort(), []);
   useEffect(() => {
     if (history.data && !history.error) setUncertain(false);
   }, [history.data, history.error]);
 
+  // Traffic Toggle Handler
+  const handleToggleTraffic = useCallback(async (enabled, rps) => {
+    trafficMutation.current = true;
+    setTrafficBusy(true);
+    setTrafficError(null);
+    try {
+      const result = await client.toggleTraffic(enabled, rps);
+      setTraffic(result);
+    } catch (err) {
+      setTrafficError(err.message || 'Failed to update traffic configuration');
+    } finally {
+      trafficMutation.current = false;
+      setTrafficBusy(false);
+    }
+  }, [client]);
+
+  // Experiment Mutation Handler
   async function change(action, body) {
     if (mutation.current) throw new Error('Another experiment change is in progress.');
     if (action === 'start' && (blocked || experiment)) {
@@ -69,13 +149,22 @@ export default function App({ client = api }) {
         ? await client.startExperiment(body, { signal: controller.signal })
         : await client.stopExperiment(body, { signal: controller.signal });
 
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted) return result;
       history.setData(rows => [result, ...(rows ?? []).filter(row => row.id !== result.id)]);
       setNotice(action === 'start'
         ? `Started ${result.name}.`
         : `Fault cleanup confirmed for ${result.name}. ${result.abort_reason ?? result.status}`
       );
+      return result;
     } catch (err) {
+      // Handle the stop race: if stopExperiment fails because the experiment already finished,
+      // refresh state and show a neutral message instead of a red error.
+      if (action === 'stop' && isExperimentAlreadyEndedError(err)) {
+        setNotice('Experiment already ended (completed or watchdog-aborted).');
+        history.refresh();
+        return;
+      }
+
       if (!controller.signal.aborted) {
         setUncertain(true);
         setNotice(`Change not confirmed: ${err.message} Refreshing control-plane state.`);
@@ -118,7 +207,8 @@ export default function App({ client = api }) {
           onOpenEmergencyStop={() => setIsEmergencyModalOpen(true)}
         />
 
-        <main id="main" className="flex-1 px-4 py-6 sm:px-8 sm:py-8 pb-28 md:pb-10 max-w-[1440px] w-full mx-auto space-y-6">
+        {/* Page Content: pb-36 guarantees mobile bottom nav + pinned stop bar never cover content */}
+        <main id="main" className="flex-1 px-4 py-6 sm:px-8 sm:py-8 pb-36 md:pb-12 max-w-[1440px] w-full mx-auto space-y-6">
           {/* Status Notices */}
           {notice && (
             <div
@@ -146,25 +236,21 @@ export default function App({ client = api }) {
 
           {/* Screen Routing */}
           {activeScreen === 'dashboard' && (
-            <div className="space-y-6">
-              <TopologyBanner
-                experiment={experiment}
-                stale={!loaded || Boolean(error)}
-              />
-              <Suspense
-                fallback={
-                  <div className="p-8 text-center text-xs font-mono text-[#849396] bg-[#121A2F] rounded-xl border border-[#1E2942]">
-                    Loading real-time telemetry panel…
-                  </div>
-                }
-              >
-                <LiveTelemetryPanel
-                  experiment={experiment}
-                  experimentStale={!loaded || Boolean(error)}
-                  client={client}
-                />
-              </Suspense>
-            </div>
+            <DashboardView
+              metrics={metrics}
+              metricsError={metricsError}
+              lastMetricsUpdated={lastMetricsUpdated}
+              buffer={metricsBuffer}
+              experiment={experiment}
+              stale={!loaded || Boolean(error)}
+              traffic={traffic}
+              trafficBusy={trafficBusy}
+              trafficError={trafficError}
+              onToggleTraffic={handleToggleTraffic}
+              orderReadiness={orderReadiness.data}
+              controllerReadiness={controllerReadiness.data}
+              onNavigate={setActiveScreen}
+            />
           )}
 
           {activeScreen === 'experiments' && (
@@ -172,6 +258,9 @@ export default function App({ client = api }) {
               <TopologyBanner
                 experiment={experiment}
                 stale={!loaded || Boolean(error)}
+                orderReadiness={orderReadiness.data}
+                controllerReadiness={controllerReadiness.data}
+                onNavigate={setActiveScreen}
               />
               <ExperimentLauncher
                 catalog={catalog.data}

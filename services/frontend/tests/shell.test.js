@@ -4,6 +4,7 @@ import {
   getPageTitle,
   canEmergencyStop,
   deriveHealthPillState,
+  isExperimentAlreadyEndedError,
   NAV_ITEMS,
 } from '../src/lib/shell.js';
 
@@ -90,4 +91,18 @@ test('deriveHealthPillState handles loading, unreachable, ready, and degraded st
   const missingIdRes = canEmergencyStop({ status: 'RUNNING', id: null });
   assert.equal(missingIdRes.enabled, false);
 });
+
+test('isExperimentAlreadyEndedError classifies stop race errors correctly', () => {
+  assert.equal(isExperimentAlreadyEndedError(null), false);
+  assert.equal(isExperimentAlreadyEndedError(new Error('Internal server error 500')), false);
+  assert.equal(isExperimentAlreadyEndedError(new Error('Database lock acquisition timeout')), false);
+
+  assert.equal(isExperimentAlreadyEndedError(new Error('Experiment already finished')), true);
+  assert.equal(isExperimentAlreadyEndedError(new Error('Experiment already ended')), true);
+  assert.equal(isExperimentAlreadyEndedError(new Error('Experiment not found')), true);
+  assert.equal(isExperimentAlreadyEndedError(new Error('404 Not Found')), true);
+  assert.equal(isExperimentAlreadyEndedError('Experiment is not running'), true);
+  assert.equal(isExperimentAlreadyEndedError('row.status not in active'), true);
+});
+
 
