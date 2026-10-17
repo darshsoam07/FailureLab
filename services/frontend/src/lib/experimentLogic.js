@@ -134,13 +134,23 @@ export function formatExperimentStatus(experimentOrStatus, abortReason = null) {
     case 'ABORTED_SLO_BREACH':
       return { label: 'ABORTED (SLO BREACH)', variant: 'breached', dot: true, pulse: false };
     case 'MANUAL_STOP':
-      return { label: 'MANUAL STOP', variant: 'degraded', dot: true, pulse: false };
+      return { label: 'Manually stopped', variant: 'degraded', dot: true, pulse: false };
     case 'COMPLETED':
+      // Exact abort_reason checks matching services/experiment_controller/watchdog.py
       if (reason === 'MANUAL_STOP') {
-        return { label: 'MANUAL STOP', variant: 'degraded', dot: true, pulse: false };
+        return { label: 'Manually stopped', variant: 'degraded', dot: true, pulse: false };
       }
-      if (typeof reason === 'string' && reason.startsWith('SAFETY_STOP')) {
-        return { label: reason.replaceAll('_', ' '), variant: 'degraded', dot: true, pulse: false };
+      if (reason === 'SAFETY_STOP_CONTROLLER_FAILURE') {
+        return { label: 'CONTROLLER FAILURE STOP', variant: 'degraded', dot: true, pulse: false };
+      }
+      if (reason === 'STARTUP_RECOVERY') {
+        return { label: 'STARTUP RECOVERY STOP', variant: 'degraded', dot: true, pulse: false };
+      }
+      if (reason === 'SAFETY_STOP_MONITORING_GAP') {
+        return { label: 'MONITORING GAP STOP', variant: 'degraded', dot: true, pulse: false };
+      }
+      if (typeof reason === 'string' && reason.startsWith('SAFETY_STOP_TELEMETRY_UNAVAILABLE')) {
+        return { label: 'TELEMETRY UNAVAILABLE STOP', variant: 'degraded', dot: true, pulse: false };
       }
       return { label: 'COMPLETED', variant: 'healthy', dot: true, pulse: false };
     default:

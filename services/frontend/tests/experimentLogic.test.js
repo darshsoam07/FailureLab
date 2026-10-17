@@ -104,7 +104,37 @@ test('deriveConsecutiveBreaches counts trailing consecutive breach streak accura
     isBreaching: false,
   });
 
-  // 1 breach in middle, followed by healthy -> consecutive is 0, total is 1
+  // Edge case: Exactly equal to threshold is NOT a breach (strict '>' in watchdog.py lines 73, 75)
+  const exactThreshold = [
+    { p95_latency_ms: 500.0, error_rate: 0.05 },
+  ];
+  assert.deepEqual(deriveConsecutiveBreaches(exactThreshold, 500, 0.05), {
+    consecutiveBreaches: 0,
+    totalBreaches: 0,
+    isBreaching: false,
+  });
+
+  // Edge case: P95 breaches independently
+  const p95BreachOnly = [
+    { p95_latency_ms: 500.1, error_rate: 0.01 },
+  ];
+  assert.deepEqual(deriveConsecutiveBreaches(p95BreachOnly, 500, 0.05), {
+    consecutiveBreaches: 1,
+    totalBreaches: 1,
+    isBreaching: true,
+  });
+
+  // Edge case: Error rate breaches independently
+  const errorBreachOnly = [
+    { p95_latency_ms: 200, error_rate: 0.0501 },
+  ];
+  assert.deepEqual(deriveConsecutiveBreaches(errorBreachOnly, 500, 0.05), {
+    consecutiveBreaches: 1,
+    totalBreaches: 1,
+    isBreaching: true,
+  });
+
+  // 1 breach in middle, followed by healthy -> resets streak to 0, total is 1
   const recovered = [
     { p95_latency_ms: 600, error_rate: 0.01 },
     { p95_latency_ms: 150, error_rate: 0.01 },
@@ -127,7 +157,7 @@ test('deriveConsecutiveBreaches counts trailing consecutive breach streak accura
     isBreaching: true,
   });
 
-  // 4 trailing breaches -> capped at 3
+  // 4 trailing breaches -> capped at 3 (watchdog.py triggers abort on 3 consecutive)
   const fourBreaches = [
     { p95_latency_ms: 600, error_rate: 0.06 },
     { p95_latency_ms: 600, error_rate: 0.06 },
@@ -189,20 +219,29 @@ test('formatExperimentStatus covers all backend enum values and unknown fallback
   const completed = formatExperimentStatus({ status: 'COMPLETED', abort_reason: null });
   assert.deepEqual(completed, { label: 'COMPLETED', variant: 'healthy', dot: true, pulse: false });
 
-  // 4. COMPLETED with MANUAL_STOP
+  // 4. COMPLETED with MANUAL_STOP -> Manually stopped
   const manualStop = formatExperimentStatus({ status: 'COMPLETED', abort_reason: 'MANUAL_STOP' });
-  assert.deepEqual(manualStop, { label: 'MANUAL STOP', variant: 'degraded', dot: true, pulse: false });
+  assert.deepEqual(manualStop, { label: 'Manually stopped', variant: 'degraded', dot: true, pulse: false });
 
   // 5. Direct MANUAL_STOP status
   const manualDirect = formatExperimentStatus('MANUAL_STOP');
-  assert.deepEqual(manualDirect, { label: 'MANUAL STOP', variant: 'degraded', dot: true, pulse: false });
+  assert.deepEqual(manualDirect, { label: 'Manually stopped', variant: 'degraded', dot: true, pulse: false });
 
-  // 6. COMPLETED with SAFETY_STOP_CONTROLLER_FAILURE
-  const safetyStop = formatExperimentStatus('COMPLETED', 'SAFETY_STOP_CONTROLLER_FAILURE');
-  assert.deepEqual(safetyStop, { label: 'SAFETY STOP CONTROLLER FAILURE', variant: 'degraded', dot: true, pulse: false });
+  // 6. COMPLETED with exact controller abort reasons (no wildcards)
+  const safetyFailure = formatExperimentStatus('COMPLETED', 'SAFETY_STOP_CONTROLLER_FAILURE');
+  assert.deepEqual(safetyFailure, { label: 'CONTROLLER FAILURE STOP', variant: 'degraded', dot: true, pulse: false });
+
+  const startupRecovery = formatExperimentStatus('COMPLETED', 'STARTUP_RECOVERY');
+  assert.deepEqual(startupRecovery, { label: 'STARTUP RECOVERY STOP', variant: 'degraded', dot: true, pulse: false });
+
+  const monitoringGap = formatExperimentStatus('COMPLETED', 'SAFETY_STOP_MONITORING_GAP');
+  assert.deepEqual(monitoringGap, { label: 'MONITORING GAP STOP', variant: 'degraded', dot: true, pulse: false });
+
+  const telemetryGap = formatExperimentStatus('COMPLETED', 'SAFETY_STOP_TELEMETRY_UNAVAILABLE: httpx.TimeoutException');
+  assert.deepEqual(telemetryGap, { label: 'TELEMETRY UNAVAILABLE STOP', variant: 'degraded', dot: true, pulse: false });
 
   // 7. ABORTED_SLO_BREACH
-  const sloAborted = formatExperimentStatus({ status: 'ABORTED_SLO_BREACH', abort_reason: '3_CONSECUTIVE_SLO_BREACHES' });
+  const sloAborted = formatExperimentStatus({ status: 'ABORTED_SLO_BREACH', abort_reason: 'SLO breached for 3 consecutive snapshots' });
   assert.deepEqual(sloAborted, { label: 'ABORTED (SLO BREACH)', variant: 'breached', dot: true, pulse: false });
 
   // 8. Unknown fallback (e.g. UNKNOWN_NEW_STATUS)

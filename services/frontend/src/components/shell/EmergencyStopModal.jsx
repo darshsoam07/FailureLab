@@ -161,7 +161,7 @@ export function EmergencyStopModal({
               Restores upstream HTTP connections to unhindered bypass mode
             </li>
             <li>
-              Transitions experiment record to <strong className="text-white">ABORTED</strong> state
+              Transitions experiment record to <strong className="text-white">COMPLETED</strong> state with <strong className="text-amber-300">MANUAL_STOP</strong>
             </li>
           </ul>
         </div>

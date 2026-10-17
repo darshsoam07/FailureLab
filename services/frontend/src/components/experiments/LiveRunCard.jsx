@@ -173,6 +173,46 @@ export function LiveRunCard({
   const snapshotSecondsAgo = latestSnapshotTs ? Math.max(0, Math.floor((now - latestSnapshotTs) / 1000)) : null;
   const isStreamDelayed = isRunning && snapshotSecondsAgo !== null && snapshotSecondsAgo > 12;
 
+  // 6. Fault Injected ReferenceLine marker derived from experiment.started_at
+  const faultMarker = useMemo(() => {
+    if (!experiment?.started_at || timelineData.length === 0) return null;
+    const startEpoch = new Date(experiment.started_at).getTime();
+    if (!Number.isFinite(startEpoch)) return null;
+
+    const earliest = timelineData[0].timestamp;
+    const latest = timelineData[timelineData.length - 1].timestamp;
+
+    // Clamped to left edge if start time is before earliest plotted snapshot
+    if (startEpoch < earliest) {
+      return {
+        x: timelineData[0].timeFormatted,
+        label: 'Fault injected (prior to window)',
+      };
+    }
+    // If start time is after latest plotted snapshot
+    if (startEpoch > latest) {
+      return {
+        x: timelineData[timelineData.length - 1].timeFormatted,
+        label: 'Fault injected (pending snapshots)',
+      };
+    }
+
+    // Find the plotted snapshot closest to started_at
+    let closest = timelineData[0];
+    let minDiff = Math.abs(timelineData[0].timestamp - startEpoch);
+    for (let i = 1; i < timelineData.length; i++) {
+      const diff = Math.abs(timelineData[i].timestamp - startEpoch);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closest = timelineData[i];
+      }
+    }
+    return {
+      x: closest.timeFormatted,
+      label: 'Fault injected',
+    };
+  }, [experiment?.started_at, timelineData]);
+
   // Chart domain bounds
   const maxP95 = timelineData.reduce((acc, d) => Math.max(acc, d.p95), p95Ceiling * 1.25);
   const maxError = timelineData.reduce((acc, d) => Math.max(acc, d.errorRatePct), Math.max(10, errorCeilingPct * 2));
@@ -440,18 +480,20 @@ export function LiveRunCard({
                     }}
                   />
 
-                  {/* Fault Injected marker at start point */}
-                  <ReferenceLine
-                    x={timelineData[0]?.timeFormatted}
-                    stroke="#00e5ff"
-                    strokeDasharray="2 2"
-                    label={{
-                      value: 'Fault injected',
-                      fill: '#00e5ff',
-                      fontSize: 9,
-                      position: 'insideTopLeft',
-                    }}
-                  />
+                  {/* Fault Injected marker using experiment.started_at (clamped to left edge if prior to window) */}
+                  {faultMarker && (
+                    <ReferenceLine
+                      x={faultMarker.x}
+                      stroke="#00e5ff"
+                      strokeDasharray="2 2"
+                      label={{
+                        value: faultMarker.label,
+                        fill: '#00e5ff',
+                        fontSize: 9,
+                        position: 'insideTopLeft',
+                      }}
+                    />
+                  )}
 
                   <Area
                     yAxisId="latency"
