@@ -13,6 +13,7 @@ import { ErrorBanner } from './components/common/ErrorBanner.jsx';
 // Feature Views & Components
 import { DashboardView } from './components/dashboard/DashboardView.jsx';
 import { ExperimentsView } from './components/experiments/ExperimentsView.jsx';
+import { ReportsView } from './components/reports/ReportsView.jsx';
 import TopologyBanner from './components/TopologyBanner.jsx';
 import ExperimentLauncher from './components/ExperimentLauncher.jsx';
 import ExperimentHistoryAndAIReport from './components/ExperimentHistoryAndAIReport.jsx';
@@ -30,7 +31,13 @@ export default function App({ client = api }) {
   const [revision, setRevision] = useState(0);
   const [notice, setNotice] = useState('');
   const [uncertain, setUncertain] = useState(false);
+  const [stagedProposal, setStagedProposal] = useState(null);
   const mutation = useRef(null);
+
+  const handleStageProposal = useCallback((proposalBody) => {
+    setStagedProposal(proposalBody);
+    setActiveScreen('experiments');
+  }, []);
 
   // Single Source of Truth Polling for Experiments and Catalog
   const loadExperiments = useCallback(signal => client.getExperiments({ limit: 100, signal }), [client]);
@@ -325,21 +332,18 @@ export default function App({ client = api }) {
                 onLaunch={launch}
                 onTriggerEmergencyStop={() => setIsEmergencyModalOpen(true)}
                 latestReport={experimentDetail?.ai_report}
+                latestProposal={stagedProposal}
               />
             </div>
           )}
 
           {activeScreen === 'reports' && (
-            <div className="space-y-6">
-              <ExperimentHistoryAndAIReport
-                catalog={catalog.data}
-                blocked={blocked || Boolean(experiment)}
-                busy={busy}
-                onLaunch={launch}
-                revision={revision}
-                client={client}
-              />
-            </div>
+            <ReportsView
+              client={client}
+              catalog={catalog.data}
+              onStageProposal={handleStageProposal}
+              revision={revision}
+            />
           )}
 
           {activeScreen === 'topology' && (

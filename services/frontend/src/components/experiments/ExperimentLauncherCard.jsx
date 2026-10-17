@@ -84,6 +84,34 @@ export function ExperimentLauncherCard({
     }
   }
 
+  // Auto-populate form when a proposal is explicitly staged (e.g. navigated from Reports)
+  useEffect(() => {
+    if (latestProposal) {
+      const type = latestProposal.fault_type;
+      if (type && Object.hasOwn(FAULT_LABELS, type)) {
+        setFaultType(type);
+      }
+      if (latestProposal.parameters) {
+        setParameters({ ...latestProposal.parameters });
+      } else if (latestProposal.suggested_parameters) {
+        setParameters({ ...latestProposal.suggested_parameters });
+      }
+      if (typeof latestProposal.duration_seconds === 'number') {
+        setDuration(latestProposal.duration_seconds);
+      }
+      if (typeof latestProposal.slo_max_p95_ms === 'number') {
+        setP95Ceiling(latestProposal.slo_max_p95_ms);
+      }
+      if (typeof latestProposal.slo_max_error_rate === 'number') {
+        setErrorPercent(fractionToPercent(latestProposal.slo_max_error_rate));
+      }
+      if (latestProposal.name) {
+        setName(latestProposal.name);
+      }
+      setAiNotice('AI proposal loaded into form fields. Advisory only: model assessment, not an automated safety clearance. Review parameters before launching.');
+    }
+  }, [latestProposal]);
+
   // Sync parameters when changing fault type
   function handleSelectFault(type) {
     setFaultType(type);
