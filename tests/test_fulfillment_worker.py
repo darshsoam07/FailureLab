@@ -35,6 +35,23 @@ def setup_worker(status=OrderStatus.PENDING):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize('running,registered', [(True, True), (True, False), (False, True)])
+async def test_readiness_rejects_stale_consumer_even_when_task_is_alive(monkeypatch, running, registered):
+    worker, _, _, _, _ = setup_worker()
+    worker.inventory.client = SimpleNamespace(is_closed=False)
+    task = MagicMock()
+    task.done.return_value = not running
+    supervisor = SimpleNamespace(healthy=registered, probe=AsyncMock(return_value=registered))
+    context = AsyncMock()
+    context.__aenter__.return_value = SimpleNamespace(execute=AsyncMock())
+    monkeypatch.setattr(module, 'get_session_factory', lambda: MagicMock(return_value=context))
+    monkeypatch.setattr(module, 'get_worker_settings', lambda: SimpleNamespace(READINESS_TIMEOUT_SECONDS=1))
+    state = SimpleNamespace(ready=True, worker=worker, consumer_task=task, consumer_supervisor=supervisor)
+    response = await module.ready(SimpleNamespace(app=SimpleNamespace(state=state)))
+    assert response.status_code == (200 if running and registered else 503)
+
+
+@pytest.mark.asyncio
 async def test_success_commits_before_ack_and_records_duration(monkeypatch):
     worker, message, order, session, transaction = setup_worker()
     times = iter([100, 100.2])

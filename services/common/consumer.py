@@ -19,6 +19,7 @@ class ConsumerSupervisor:
         self.prefetch, self.timeout = prefetch, timeout
         self.retry_delay, self.heartbeat = retry_delay, heartbeat
         self.connection = self.channel = None
+        self.queue = self.consumer_tag = None
         self.active = False
         self.generations = 0
         self._lost = asyncio.Event()
@@ -67,6 +68,14 @@ class ConsumerSupervisor:
 
     async def _dispose(self) -> None:
         self._disconnected()
+        if (self.queue is not None and self.consumer_tag is not None
+                and self.channel is not None and not self.channel.is_closed
+                and self.connection.connected.is_set()):
+            try:
+                # Await Basic.CancelOk before reporting shutdown complete.
+                await self.queue.cancel(self.consumer_tag, timeout=self.timeout)
+            except Exception:
+                logger.debug("Consumer cancellation requires transport close", exc_info=True)
         # Roll back in-flight jobs before closing their transport and redelivering.
         while self._handlers:
             tasks = tuple(self._handlers)
@@ -78,6 +87,7 @@ class ConsumerSupervisor:
             # Do not create the next generation until the old connection is closed.
             await self.connection.close()
         self.connection = self.channel = None
+        self.queue = self.consumer_tag = None
 
     async def run(self) -> None:
         while True:
@@ -94,8 +104,8 @@ class ConsumerSupervisor:
                     await self.channel.set_qos(prefetch_count=self.prefetch)
                     # The supervisor owns registration. Library restoration must
                     # not resurrect callbacks belonging to a previous generation.
-                    queue = await self.channel.declare_queue(self.queue_name, durable=True, robust=False)
-                    await queue.consume(self._handle, robust=False, timeout=self.timeout)
+                    self.queue = await self.channel.declare_queue(self.queue_name, durable=True, robust=False)
+                    self.consumer_tag = await self.queue.consume(self._handle, robust=False, timeout=self.timeout)
                 if self._lost.is_set():
                     raise ConnectionError('Channel closed during consumer setup')
                 self.generations += 1

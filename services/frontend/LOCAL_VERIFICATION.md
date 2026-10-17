@@ -123,17 +123,19 @@ Open the Local URL printed by Vite. Its proxy avoids browser CORS issues.
 ## 5. Exercise the complete flow
 
 - Enable **Background Traffic** at 5 RPS. Confirm attempts, successes, and chart
-  samples increase. Wait for successful fulfillment before injecting faults.
+  samples increase. Warm up for 20 seconds, then require three samples five
+  seconds apart from `/api/orders/metrics-summary?window_seconds=10` with at
+  least 30 successes, zero failures, and P95 below 200ms before injecting faults.
 - Launch **Latency Spike**: 450ms latency, 50ms jitter, 60s duration, 10% error
   ceiling, 200ms P95 ceiling. Observe the fault highlight and latency increase.
-  After three breached watchdog samples, expect `ABORTED_SLO_BREACH`; the rolling
-  window can delay the first breach. Open that history row and wait for its AI
+  After three breached watchdog samples, expect `ABORTED_SLO_BREACH`. Watchdog
+  metrics exclude orders created before the experiment started. Open that history row and wait for its AI
   report. Confirm evidence, confidence, recommended fix, and proposed parameters.
 - Click **Run AI's Next Proposed Experiment** once; confirm a new RUNNING row
   with the displayed inherited SLO limits. Use **EMERGENCY ABORT / KILL SWITCH**.
   Expect `COMPLETED / STOPPED`, reason `MANUAL_STOP`, and cleared fault state.
-- After the 60-second metrics window clears, launch a 15-second 0ms latency / 0ms
-  jitter experiment with a generous P95 ceiling. Confirm normal `COMPLETED`
+- Immediately launch a 15-second 0ms latency / 0ms
+  jitter experiment with a 200ms P95 ceiling. Confirm normal `COMPLETED`
   without a stop reason, then inspect its report.
 - Disable traffic. Confirm attempts stop increasing after in-flight requests
   drain. Stop any active experiment before terminating service terminals.
@@ -153,3 +155,19 @@ npm.cmd --prefix services/frontend run build
 After cleanup, the toxics response should be an empty array. HTTP 503 injection
 is cleared separately by the controller. These are verification instructions;
 unit tests and a frontend build alone do not prove real-service integration.
+
+For a headless run, with the services ready and Section 2 environment exported:
+
+```powershell
+$env:CONTROLLER_API_URL = 'http://127.0.0.1:8003'
+$env:FAILURELAB_INTEGRATION_TESTS = '1'
+.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe scripts/verify_live.py
+```
+
+The script asserts the warm baseline, fault P95 above 500ms, automatic abort,
+AI report, manual stop, empty toxics, immediate zero-latency control, and drained
+orders. Evidence is saved in `.logs/verification-fixed/`. It never restarts a
+worker. Order latency includes outbox/queue residence plus fulfillment execution;
+idle outbox polling defaults to 50ms. Workers supervise AMQP registrations and
+return readiness 503 when the task, channel, connection, or registration is lost.

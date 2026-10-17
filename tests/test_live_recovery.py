@@ -50,10 +50,12 @@ async def test_real_broker_recovers_repeated_transport_loss_without_orphan_consu
     finally:
         task.cancel()
         await asyncio.gather(task, return_exceptions=True)
-        probe = await channel.declare_queue(name, passive=True)
-        assert probe.declaration_result.consumer_count == 0
-        await queue.delete()
-        await publisher.close()
+        try:
+            probe = await channel.declare_queue(name, passive=True)
+            assert probe.declaration_result.consumer_count == 0
+        finally:
+            await queue.delete()
+            await publisher.close()
 
 
 async def test_real_postgres_since_excludes_cold_orders_even_if_completed_later():

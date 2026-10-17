@@ -8,7 +8,7 @@ from services.common import consumer
 
 
 def connection():
-    queue = SimpleNamespace(consume=AsyncMock(return_value='tag'),
+    queue = SimpleNamespace(consume=AsyncMock(return_value='tag'), cancel=AsyncMock(),
                             declaration_result=SimpleNamespace(consumer_count=1))
     channel = SimpleNamespace(is_closed=False, close_callbacks=set(), set_qos=AsyncMock(),
                               declare_queue=AsyncMock(return_value=queue))
