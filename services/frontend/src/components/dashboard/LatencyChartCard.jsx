@@ -55,12 +55,19 @@ export function LatencyChartCard({
     });
   }, [currentP95, sloThreshold, maxY]);
 
-  // Experiment start timestamp marker
+  // Experiment start timestamp marker (rendered only if start time falls inside the buffered window)
   const experimentStartTs = useMemo(() => {
-    if (!isRunning || !experiment?.started_at) return null;
+    if (!isRunning || !experiment?.started_at || buffer.length === 0) return null;
     const parsed = new Date(experiment.started_at).getTime();
-    return Number.isFinite(parsed) ? parsed : null;
-  }, [isRunning, experiment?.started_at]);
+    if (!Number.isFinite(parsed)) return null;
+
+    const minTs = buffer[0]?.timestamp;
+    const maxTs = buffer[buffer.length - 1]?.timestamp;
+    if (typeof minTs === 'number' && typeof maxTs === 'number' && parsed >= minTs && parsed <= maxTs) {
+      return parsed;
+    }
+    return null;
+  }, [isRunning, experiment?.started_at, buffer]);
 
   // Compute seconds since last successful update
   const secondsAgo = lastUpdated

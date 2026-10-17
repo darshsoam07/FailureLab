@@ -182,7 +182,6 @@ export default function App({ client = api }) {
 
   const launch = async (body) => {
     await change('start', body);
-    setActiveScreen('dashboard');
   };
 
   const stop = id => change('stop', id);
