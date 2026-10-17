@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatExperimentStatus } from '../../lib/experimentLogic.js';
 
 /**
  * Normalizes status strings into known badge variants.
@@ -77,5 +78,21 @@ export function StatusBadge({
       )}
       <span>{content}</span>
     </span>
+  );
+}
+
+/**
+ * Dedicated StatusBadge for experiments, strictly honoring backend models and fallback rules.
+ */
+export function ExperimentStatusBadge({ experiment, status, abortReason, className = '' }) {
+  const info = formatExperimentStatus(experiment || status, abortReason);
+  return (
+    <StatusBadge
+      variant={info.variant}
+      label={info.label}
+      dot={info.dot}
+      pulse={info.pulse}
+      className={className}
+    />
   );
 }

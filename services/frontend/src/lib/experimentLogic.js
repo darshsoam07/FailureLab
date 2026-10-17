@@ -99,28 +99,98 @@ export function generatePreviewSentence({
 }
 
 /**
+ * Normalizes experiment status and abort reasons into badge presentation props.
+ * Explicitly covers all backend enum values and abort scenarios:
+ * - RUNNING
+ * - PLANNED
+ * - COMPLETED (with or without MANUAL_STOP or SAFETY_STOP)
+ * - ABORTED_SLO_BREACH
+ * - MANUAL_STOP
+ * - Unknown values fall back to a neutral badge displaying the raw status string.
+ *
+ * @param {Object|string} experimentOrStatus
+ * @param {string|null} [abortReason=null]
+ * @returns {{ label: string, variant: 'healthy'|'degraded'|'breached'|'info'|'neutral', dot: boolean, pulse: boolean }}
+ */
+export function formatExperimentStatus(experimentOrStatus, abortReason = null) {
+  const status = typeof experimentOrStatus === 'object' && experimentOrStatus !== null
+    ? experimentOrStatus.status
+    : experimentOrStatus;
+  const reason = typeof experimentOrStatus === 'object' && experimentOrStatus !== null
+    ? experimentOrStatus.abort_reason
+    : abortReason;
+
+  if (!status) {
+    return { label: 'UNKNOWN', variant: 'neutral', dot: false, pulse: false };
+  }
+
+  const s = String(status).toUpperCase();
+
+  switch (s) {
+    case 'RUNNING':
+      return { label: 'RUNNING', variant: 'info', dot: true, pulse: true };
+    case 'PLANNED':
+      return { label: 'PLANNED', variant: 'neutral', dot: true, pulse: false };
+    case 'ABORTED_SLO_BREACH':
+      return { label: 'ABORTED (SLO BREACH)', variant: 'breached', dot: true, pulse: false };
+    case 'MANUAL_STOP':
+      return { label: 'MANUAL STOP', variant: 'degraded', dot: true, pulse: false };
+    case 'COMPLETED':
+      if (reason === 'MANUAL_STOP') {
+        return { label: 'MANUAL STOP', variant: 'degraded', dot: true, pulse: false };
+      }
+      if (typeof reason === 'string' && reason.startsWith('SAFETY_STOP')) {
+        return { label: reason.replaceAll('_', ' '), variant: 'degraded', dot: true, pulse: false };
+      }
+      return { label: 'COMPLETED', variant: 'healthy', dot: true, pulse: false };
+    default:
+      // Unknown values fall back to a neutral badge showing the raw value
+      return { label: String(status), variant: 'neutral', dot: false, pulse: false };
+  }
+}
+
+/**
  * Maps raw backend TelemetrySnapshot rows to Recharts timeline points.
  *
  * @param {Array<Object>} [snapshots=[]]
+ * @param {number} [sloMaxP95Ms=500]
+ * @param {number} [sloMaxErrorRate=0.05] - 0-1 fraction
  * @returns {Array<Object>}
  */
-export function mapSnapshotsToTimeline(snapshots = []) {
+export function mapSnapshotsToTimeline(snapshots = [], sloMaxP95Ms = 500, sloMaxErrorRate = 0.05) {
   if (!Array.isArray(snapshots) || snapshots.length === 0) return [];
 
+  const p95Ceiling = typeof sloMaxP95Ms === 'number' ? sloMaxP95Ms : 500;
+  const errorCeiling = typeof sloMaxErrorRate === 'number' ? sloMaxErrorRate : 0.05;
+  const errorCeilingPct = errorCeiling * 100;
+
   return snapshots.map((s, index) => {
-    const ts = new Date(s.timestamp).getTime();
+    const d = new Date(s.timestamp);
+    const ts = d.getTime();
+    const timeFormatted = Number.isFinite(ts)
+      ? d.toTimeString().slice(0, 8)
+      : `#${index + 1}`;
+
+    const p95 = typeof s.p95_latency_ms === 'number' && Number.isFinite(s.p95_latency_ms)
+      ? Number(s.p95_latency_ms.toFixed(1))
+      : 0;
+
+    const errorRatePct = typeof s.error_rate === 'number' && Number.isFinite(s.error_rate)
+      ? Number((s.error_rate * 100).toFixed(2))
+      : 0;
+
+    const isBreached = p95 > p95Ceiling || errorRatePct > errorCeilingPct;
+
     return {
       index: index + 1,
       timestamp: Number.isFinite(ts) ? ts : Date.now(),
-      p95: typeof s.p95_latency_ms === 'number' && Number.isFinite(s.p95_latency_ms)
-        ? Number(s.p95_latency_ms.toFixed(1))
-        : 0,
-      errorRatePct: typeof s.error_rate === 'number' && Number.isFinite(s.error_rate)
-        ? Number((s.error_rate * 100).toFixed(2))
-        : 0,
+      timeFormatted,
+      p95,
+      errorRatePct,
       totalRequests: s.total_requests ?? 0,
       failedRequests: s.failed_requests ?? 0,
       queueDepth: s.queue_depth ?? 0,
+      isBreached,
     };
   });
 }

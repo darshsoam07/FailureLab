@@ -12,6 +12,7 @@ import { ErrorBanner } from './components/common/ErrorBanner.jsx';
 
 // Feature Views & Components
 import { DashboardView } from './components/dashboard/DashboardView.jsx';
+import { ExperimentsView } from './components/experiments/ExperimentsView.jsx';
 import TopologyBanner from './components/TopologyBanner.jsx';
 import ExperimentLauncher from './components/ExperimentLauncher.jsx';
 import ExperimentHistoryAndAIReport from './components/ExperimentHistoryAndAIReport.jsx';
@@ -46,6 +47,7 @@ export default function App({ client = api }) {
   const error = history.error || catalog.error;
   const experiment = history.data?.find(row => ['RUNNING', 'PLANNED'].includes(row.status)) ?? null;
   const isRunning = experiment?.status === 'RUNNING';
+  const latestExperiment = experiment || (history.data && history.data.length > 0 ? history.data[0] : null);
   const blocked = !loaded || !catalog.data || Boolean(error) || uncertain;
 
   // Single Telemetry & Traffic Polling Source
@@ -107,6 +109,56 @@ export default function App({ client = api }) {
       clearTimeout(timer);
     };
   }, [client, metricsSince]);
+
+  // Single Detail Polling Source for Current / Most Recent Experiment
+  const [experimentDetail, setExperimentDetail] = useState(null);
+  const [detailError, setDetailError] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+
+  const targetExperimentId = latestExperiment?.id;
+  const isTargetRunning = latestExperiment?.status === 'RUNNING';
+
+  useEffect(() => {
+    if (!targetExperimentId) {
+      setExperimentDetail(null);
+      setDetailError(null);
+      return;
+    }
+
+    const controller = new AbortController();
+    let timer;
+
+    async function pollDetail() {
+      const started = performance.now();
+      try {
+        const data = await client.getExperiment(targetExperimentId, { signal: controller.signal });
+        if (!controller.signal.aborted) {
+          setExperimentDetail(data);
+          setDetailError(null);
+          setDetailLoading(false);
+        }
+      } catch (err) {
+        if (!controller.signal.aborted) {
+          // Retain last good data on error and display degraded message
+          setDetailError(err.message || 'Failed to sync experiment detail');
+          setDetailLoading(false);
+        }
+      }
+
+      // Single source of truth: poll GET /api/experiments/{id} ONLY while it is RUNNING
+      if (!controller.signal.aborted && isTargetRunning) {
+        timer = setTimeout(pollDetail, Math.max(0, 2000 - (performance.now() - started)));
+      }
+    }
+
+    setDetailLoading(true);
+    pollDetail();
+
+    return () => {
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, [client, targetExperimentId, isTargetRunning, revision]);
 
   useEffect(() => () => mutation.current?.abort(), []);
   useEffect(() => {
@@ -261,13 +313,18 @@ export default function App({ client = api }) {
                 controllerReadiness={controllerReadiness.data}
                 onNavigate={setActiveScreen}
               />
-              <ExperimentLauncher
+              <ExperimentsView
                 catalog={catalog.data}
                 activeExperiment={experiment}
+                latestExperiment={latestExperiment}
+                detail={experimentDetail}
+                detailError={detailError}
+                detailLoading={detailLoading}
                 blocked={blocked}
                 busy={busy}
                 onLaunch={launch}
-                onStop={stop}
+                onTriggerEmergencyStop={() => setIsEmergencyModalOpen(true)}
+                latestReport={experimentDetail?.ai_report}
               />
             </div>
           )}
