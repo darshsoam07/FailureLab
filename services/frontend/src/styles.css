@@ -1,0 +1,16 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+@layer base {
+  :root { color-scheme: dark; }
+  body { margin: 0; min-width: 320px; background: #090d14; }
+  :focus-visible { outline: 2px solid #71e4c2; outline-offset: 4px; }
+  ::selection { background: #71e4c2; color: #090d14; }
+  progress { appearance: none; border: none; border-radius: 999px; overflow: hidden; background: #253244; }
+  progress::-webkit-progress-bar { background: #253244; }
+  progress::-webkit-progress-value { background: #71e4c2; }
+  progress::-moz-progress-bar { background: #71e4c2; }
+}
+@layer components {
+  .eyebrow { @apply font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400; }
+}

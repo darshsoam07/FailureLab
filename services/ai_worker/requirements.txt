@@ -1,0 +1,3 @@
+-r ../inventory_service/requirements.txt
+aio-pika==9.5.5
+httpx==0.28.1

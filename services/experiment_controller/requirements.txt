@@ -1,0 +1,2 @@
+-r ../fulfillment_worker/requirements.txt
+pamqp==3.3.0
