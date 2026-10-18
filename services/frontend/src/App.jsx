@@ -348,6 +348,8 @@ export default function App({ client = api }) {
 
           {activeScreen === 'topology' && (
             <TopologyOverview
+              orderLastSuccessAt={orderReadiness.lastSuccessAt}
+              controllerLastSuccessAt={controllerReadiness.lastSuccessAt}
               experiment={experiment}
               stale={!loaded || Boolean(error)}
               orderReadiness={orderReadiness.data}

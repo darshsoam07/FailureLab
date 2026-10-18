@@ -35,21 +35,16 @@ export function TopologyOverview({
   orderReadiness,
   controllerReadiness,
   onNavigate,
+  orderLastSuccessAt = null,
+  controllerLastSuccessAt = null,
 }) {
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   const [desktopViewMode, setDesktopViewMode] = useState('graph'); // 'graph' | 'list'
-  const [lastProbeTime, setLastProbeTime] = useState(null);
+
   const lastActiveElementRef = useRef(null);
 
   // Derive real node health
   const healthMap = deriveTopologyHealth({ orderReadiness, controllerReadiness });
-
-  // Track probe check time
-  useEffect(() => {
-    if (orderReadiness || controllerReadiness) {
-      setLastProbeTime(new Date().toTimeString().slice(0, 8));
-    }
-  }, [orderReadiness, controllerReadiness]);
 
   // Handle node selection with focus tracking
   function handleSelectNode(nodeId) {
@@ -171,7 +166,7 @@ export function TopologyOverview({
               orderReadiness={orderReadiness}
               controllerReadiness={controllerReadiness}
               experiment={experiment}
-              lastProbeTime={lastProbeTime}
+              lastProbeTime={selectedNodeId === "order_api" ? (orderLastSuccessAt ? new Date(orderLastSuccessAt).toLocaleTimeString() : "never") : ["experiment_controller", "toxiproxy"].includes(selectedNodeId) ? (controllerLastSuccessAt ? new Date(controllerLastSuccessAt).toLocaleTimeString() : "never") : ["postgres", "rabbitmq"].includes(selectedNodeId) ? `Order API: ${orderLastSuccessAt ? new Date(orderLastSuccessAt).toLocaleTimeString() : "never"}; Controller: ${controllerLastSuccessAt ? new Date(controllerLastSuccessAt).toLocaleTimeString() : "never"}` : "never"}
               onClose={handleClosePanel}
               onNavigate={onNavigate}
             />

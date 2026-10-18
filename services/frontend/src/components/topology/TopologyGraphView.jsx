@@ -168,6 +168,8 @@ function getNodeIcon(id) {
 
 function getStatusColor(status) {
   switch (status) {
+    case 'simulated':
+      return '#c4b5fd';
     case 'healthy':
       return '#00e5ff';
     case 'degraded':
@@ -246,6 +248,7 @@ export function TopologyGraphView({
         >
           {/* Arrowhead Markers for Edge States */}
           <defs>
+            <marker id="arrow-simulated" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 9 5 L 0 9 z" fill="#c4b5fd" /></marker>
             <marker
               id="arrow-healthy"
               viewBox="0 0 10 10"
@@ -381,6 +384,7 @@ export function TopologyGraphView({
                   <button
                     type="button"
                     onClick={() => onSelectNode(node.id)}
+                    title={health.detail}
                     aria-label={`${node.name}, ${health.status}, ${node.role}`}
                     aria-expanded={isSelected}
                     className={`w-full h-full p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00e5ff] ${

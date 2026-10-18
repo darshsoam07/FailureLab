@@ -46,7 +46,7 @@ export function DashboardKpiRow({ metrics, experiment, buffer }) {
   const p95Badge = !hasMetrics
     ? 'UNKNOWN'
     : isP95Breached
-    ? 'Above SLO (dashboard view)'
+    ? 'Above SLO ceiling (dashboard view)'
     : isP95Degraded
     ? 'DEGRADED'
     : 'HEALTHY';
@@ -78,7 +78,7 @@ export function DashboardKpiRow({ metrics, experiment, buffer }) {
   const errorBadge = !hasMetrics
     ? 'UNKNOWN'
     : isErrorBreached
-    ? 'Above SLO (dashboard view)'
+    ? 'Above SLO ceiling (dashboard view)'
     : isErrorDegraded
     ? 'WARNING'
     : 'STEADY';

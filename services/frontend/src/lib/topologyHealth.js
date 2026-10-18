@@ -62,6 +62,9 @@ function deriveRabbitMQHealth(orderReadiness, controllerReadiness) {
  * Derives health for Toxiproxy from Controller readiness check.
  */
 function deriveToxiproxyHealth(controllerReadiness) {
+  if (controllerReadiness && controllerReadiness.toxiproxy_mode !== 'real') {
+    return { status: 'simulated', detail: 'Faults are simulated; results are not from a real proxy' };
+  }
   const toxiCheck = controllerReadiness?.checks?.toxiproxy;
   if (typeof toxiCheck !== 'boolean') {
     return { status: 'unknown', detail: 'Awaiting controller readiness signal' };

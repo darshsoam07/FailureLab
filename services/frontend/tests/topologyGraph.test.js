@@ -88,6 +88,7 @@ test('deriveEdgeHealth marks edges degraded when dependency checks fail and labe
   const edgesToxiFail = deriveEdgeHealth({
     nodeHealthMap,
     controllerReadiness: {
+      toxiproxy_mode: 'real',
       status: 'not_ready',
       checks: { database: true, rabbitmq: true, toxiproxy: false },
     },
@@ -112,7 +113,7 @@ test('deriveEdgeHealth never colors unprobed dependencies green without a real s
   const edges = deriveEdgeHealth({
     nodeHealthMap,
     orderReadiness: { status: 'ready', checks: { database: true, rabbitmq: true, outbox_relay: true } },
-    controllerReadiness: { status: 'ready', checks: { database: true, rabbitmq: true, toxiproxy: true } },
+    controllerReadiness: { toxiproxy_mode: 'real', status: 'ready', checks: { database: true, rabbitmq: true, toxiproxy: true } },
   });
 
   // Edge to worker or inventory must be unknown (never green)
@@ -188,4 +189,20 @@ test('groupNodesByLayer groups nodes into all 5 layers with no dropped nodes', (
     grouped.Workers.length +
     grouped.Chaos.length;
   assert.equal(total, 8);
+});
+
+
+test('non-real proxy edges are simulated, never healthy', () => {
+  for (const mode of ['simulated', 'fallback', undefined]) {
+    const edges = deriveEdgeHealth({ controllerReadiness: { toxiproxy_mode: mode, checks: { toxiproxy: true } } });
+    for (const edge of edges.filter(e => e.from === 'toxiproxy' || e.to === 'toxiproxy')) {
+      assert.equal(edge.status, 'simulated');
+      assert.equal(edge.derivation, 'Faults are simulated; results are not from a real proxy');
+    }
+  }
+});
+
+test('last probe defaults to never and preserves the client successful-poll label', () => {
+  assert.equal(deriveNodeDetails({ nodeId: 'toxiproxy' }).lastProbeTime, 'never');
+  assert.equal(deriveNodeDetails({ nodeId: 'order_api', lastProbeTime: '12:34:56' }).lastProbeTime, '12:34:56');
 });

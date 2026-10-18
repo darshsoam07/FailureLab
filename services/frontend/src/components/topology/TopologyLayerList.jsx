@@ -38,6 +38,8 @@ function getNodeIcon(id) {
 
 function getStatusBadgeClass(status) {
   switch (status) {
+    case 'simulated':
+      return 'bg-violet-950 text-violet-200 border-violet-400';
     case 'healthy':
       return 'bg-teal-950/60 text-[#00e5ff] border-teal-500/40';
     case 'degraded':
@@ -105,6 +107,7 @@ export function TopologyLayerList({
                   key={node.id}
                   type="button"
                   onClick={() => onSelectNode(node.id)}
+                  title={node.detail}
                   aria-label={`${node.name}, ${node.status}, ${node.role}`}
                   aria-expanded={isSelected}
                   className={`w-full p-3.5 rounded-xl border text-left flex items-center justify-between gap-3 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00e5ff] ${

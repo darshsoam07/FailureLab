@@ -218,6 +218,10 @@ export function deriveEdgeHealth({
     const sourceHealth = nodeHealthMap[edge.from]?.status || 'unknown';
     const targetHealth = nodeHealthMap[edge.to]?.status || 'unknown';
 
+    if ((edge.from === 'toxiproxy' || edge.to === 'toxiproxy') && controllerReadiness && controllerReadiness.toxiproxy_mode !== 'real') {
+      return { ...edge, status: 'simulated', derivation: 'Faults are simulated; results are not from a real proxy' };
+    }
+
     // 1. Check for explicit failing dependency probes (derived degradation)
     if (edge.id === 'order_to_postgres' && orderChecks.database === false) {
       return {
@@ -393,7 +397,7 @@ export function deriveNodeDetails({
   let toxiproxyActiveFault = null;
   let toxiproxyMode = null;
   if (nodeId === 'toxiproxy') {
-    toxiproxyMode = controllerReadiness?.toxiproxy_mode || 'real';
+    toxiproxyMode = controllerReadiness?.toxiproxy_mode || 'unknown';
     if (experiment && experiment.status === 'RUNNING') {
       toxiproxyActiveFault = {
         faultType: experiment.fault_type,
@@ -413,7 +417,7 @@ export function deriveNodeDetails({
     healthDetail: health.detail,
     unprobedReason,
     probeChecks,
-    lastProbeTime: lastProbeTime || (health.status !== 'unknown' ? 'Active' : 'Unprobed'),
+    lastProbeTime: lastProbeTime || 'never',
     incoming,
     outgoing,
     toxiproxyActiveFault,

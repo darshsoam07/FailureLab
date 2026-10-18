@@ -167,7 +167,7 @@ export function TopologyDetailPanel({
 
         {/* Last Probe Time */}
         <div className="text-[10px] font-mono text-[#849396] pt-1">
-          Last Probe Evaluation: <span className="text-[#dee1f9]">{details.lastProbeTime}</span>
+          Last probe (client successful poll): <span className="text-[#dee1f9]">{details.lastProbeTime}</span>
         </div>
       </div>
 

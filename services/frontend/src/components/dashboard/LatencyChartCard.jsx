@@ -84,7 +84,7 @@ export function LatencyChartCard({
       <div className="sr-only" aria-live="polite">
         Current P95 latency is {currentP95 !== null ? `${currentP95}ms` : 'unknown'}.
         {sloThreshold !== null ? ` Active SLO ceiling is ${sloThreshold}ms.` : ' SLO is not armed.'}
-        {breachZone.isBreached ? ' WARNING: SLO IS CURRENTLY BREACHED.' : ' Operating within normal limits.'}
+        {breachZone.isBreached ? ' Above SLO ceiling (dashboard view).' : ' Operating within normal limits.'}
         P50 latency is not available from the Order API.
       </div>
 

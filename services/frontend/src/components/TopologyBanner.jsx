@@ -69,7 +69,7 @@ export default function TopologyBanner({
       detail: running ? faultLabel(experiment) : 'Fault injection point',
       Icon: Zap,
       fault: true,
-      status: running ? 'degraded' : healthMap.toxiproxy.status,
+      status: healthMap.toxiproxy.status === 'simulated' ? 'simulated' : running ? 'degraded' : healthMap.toxiproxy.status,
     },
     {
       id: 'inventory',
@@ -137,7 +137,7 @@ export default function TopologyBanner({
                 <button
                   type="button"
                   onClick={handleNodeClick}
-                  title={`Click to view ${name} in Topology`}
+                  title={status === 'simulated' ? 'Faults are simulated; results are not from a real proxy' : `Click to view ${name} in Topology`}
                   className={`relative flex min-h-[110px] flex-1 flex-col items-center justify-between rounded-xl border p-3 text-center transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00e5ff] ${
                     isToxiproxyActive
                       ? 'border-amber-500/80 bg-amber-950/30 glow-amber'

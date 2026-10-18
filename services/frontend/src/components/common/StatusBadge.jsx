@@ -10,7 +10,7 @@ function normalizeVariant(variant, status) {
   if (['degraded', 'warning', 'paused', 'recovering'].includes(key)) return 'degraded';
   if (['breached', 'slo breach', 'unhealthy', 'error', 'failed', 'aborted', 'danger'].includes(key)) return 'breached';
   if (['info', 'cyan', 'running', 'active', 'steady'].includes(key)) return 'info';
-  if (['ai', 'violet', 'proposal'].includes(key)) return 'ai';
+  if (['ai', 'violet', 'proposal', 'simulated'].includes(key)) return 'ai';
   return 'neutral';
 }
 

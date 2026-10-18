@@ -31,6 +31,7 @@ test('unprobed services (inventory, fulfillment, ai worker) are always unknown',
   const fullReadiness = {
     orderReadiness: { status: 'ready', checks: { database: true, rabbitmq: true, outbox_relay: true } },
     controllerReadiness: {
+      toxiproxy_mode: 'real',
       status: 'ready',
       checks: { database: true, rabbitmq: true, toxiproxy: true, background_tasks: true, safety_engine: true },
       toxiproxy_mode: 'real',
@@ -46,6 +47,7 @@ test('derives healthy status when readiness probes report positive checks', () =
   const probes = {
     orderReadiness: { status: 'ready', checks: { database: true, rabbitmq: true, outbox_relay: true } },
     controllerReadiness: {
+      toxiproxy_mode: 'real',
       status: 'ready',
       checks: { database: true, rabbitmq: true, toxiproxy: true, background_tasks: true, safety_engine: true },
       toxiproxy_mode: 'real',
@@ -64,7 +66,7 @@ test('derives degraded or unhealthy status when checks fail', () => {
   // DB check fails in order API but passes in controller -> degraded
   const degradedDb = deriveTopologyHealth({
     orderReadiness: { status: 'not_ready', checks: { database: false, rabbitmq: true, outbox_relay: true } },
-    controllerReadiness: { status: 'ready', checks: { database: true, rabbitmq: true, toxiproxy: true } },
+    controllerReadiness: { toxiproxy_mode: 'real', status: 'ready', checks: { database: true, rabbitmq: true, toxiproxy: true } },
   });
   assert.equal(degradedDb.postgres.status, 'degraded');
   assert.equal(degradedDb.order_api.status, 'unhealthy');
@@ -72,13 +74,22 @@ test('derives degraded or unhealthy status when checks fail', () => {
   // Both report DB false -> unhealthy
   const unhealthyDb = deriveTopologyHealth({
     orderReadiness: { status: 'not_ready', checks: { database: false, rabbitmq: true } },
-    controllerReadiness: { status: 'not_ready', checks: { database: false, rabbitmq: true, toxiproxy: true } },
+    controllerReadiness: { toxiproxy_mode: 'real', status: 'not_ready', checks: { database: false, rabbitmq: true, toxiproxy: true } },
   });
   assert.equal(unhealthyDb.postgres.status, 'unhealthy');
 
   // Toxiproxy reports false in controller -> unhealthy
   const badProxy = deriveTopologyHealth({
-    controllerReadiness: { status: 'not_ready', checks: { toxiproxy: false } },
+    controllerReadiness: { toxiproxy_mode: 'real', status: 'not_ready', checks: { toxiproxy: false } },
   });
   assert.equal(badProxy.toxiproxy.status, 'unhealthy');
+});
+
+
+test('non-real proxy modes use a distinct simulated node and explanatory tooltip', () => {
+  for (const mode of ['simulated', 'fallback', undefined]) {
+    const health = deriveTopologyHealth({ controllerReadiness: { toxiproxy_mode: mode, checks: { toxiproxy: true } } });
+    assert.equal(health.toxiproxy.status, 'simulated');
+    assert.equal(health.toxiproxy.detail, 'Faults are simulated; results are not from a real proxy');
+  }
 });
