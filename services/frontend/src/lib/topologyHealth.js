@@ -147,19 +147,19 @@ export function deriveTopologyHealth({ orderReadiness = null, controllerReadines
       layer: 'service',
       port: 8001,
       status: 'unknown',
-      detail: 'No direct dashboard probe (upstream)',
+      detail: 'No readiness probe is reachable from the browser',
     },
     fulfillment_worker: {
       name: 'Fulfillment Worker',
       layer: 'worker',
       status: 'unknown',
-      detail: 'No direct dashboard probe (async worker)',
+      detail: 'No readiness probe is reachable from the browser',
     },
     ai_worker: {
       name: 'AI Worker',
       layer: 'worker',
       status: 'unknown',
-      detail: 'No direct dashboard probe (on-demand)',
+      detail: 'No readiness probe is reachable from the browser',
     },
   };
 }
