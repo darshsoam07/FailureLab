@@ -13,6 +13,7 @@ import { formatExperimentStatus } from './experimentLogic.js';
 
 /**
  * Computes summary KPIs from loaded experiments array only.
+ * Reuses formatExperimentStatus so tables, badges, and KPIs share single classification truth.
  * No resilience score, MTTR, or invented metrics.
  *
  * @param {Array<Object>} experiments
@@ -29,14 +30,13 @@ export function calculateReportsKpis(experiments = []) {
 
   for (const exp of experiments) {
     if (!exp) continue;
-    const status = String(exp.status || '').toUpperCase();
-    const abortReason = String(exp.abort_reason || '').toUpperCase();
+    const { label } = formatExperimentStatus(exp.status, exp.abort_reason);
 
-    if (abortReason === 'MANUAL_STOP' || status === 'MANUAL_STOP') {
+    if (label === 'Manually stopped') {
       manuallyStoppedCount += 1;
-    } else if (status === 'ABORTED_SLO_BREACH') {
+    } else if (label === 'ABORTED (SLO BREACH)') {
       abortedSloCount += 1;
-    } else if (status === 'COMPLETED') {
+    } else if (label === 'COMPLETED') {
       completedCount += 1;
     }
   }
@@ -46,6 +46,36 @@ export function calculateReportsKpis(experiments = []) {
     completedCount,
     abortedSloCount,
     manuallyStoppedCount,
+  };
+}
+
+/**
+ * Pure pagination helper for limit/offset without implying a total.
+ * A page with fewer items than limit is treated as the last page.
+ *
+ * @param {Object} options
+ * @param {number} [options.offset=0]
+ * @param {number} [options.limit=10]
+ * @param {number} [options.currentCount=0]
+ * @returns {{ page: number, pageLabel: string, hasPrev: boolean, hasNext: boolean, prevOffset: number, nextOffset: number }}
+ */
+export function calculatePagination({ offset = 0, limit = 10, currentCount = 0 } = {}) {
+  const safeOffset = Math.max(0, Number(offset) || 0);
+  const safeLimit = Math.max(1, Number(limit) || 10);
+  const page = Math.floor(safeOffset / safeLimit) + 1;
+  const hasPrev = safeOffset > 0;
+  // A page with fewer items than the requested limit is the last page
+  const hasNext = currentCount >= safeLimit;
+  const prevOffset = Math.max(0, safeOffset - safeLimit);
+  const nextOffset = safeOffset + safeLimit;
+
+  return {
+    page,
+    pageLabel: `Page ${page}`,
+    hasPrev,
+    hasNext,
+    prevOffset,
+    nextOffset,
   };
 }
 
@@ -67,16 +97,21 @@ export function filterAndSortExperiments(experiments = [], { statusFilter = 'all
   if (statusFilter && statusFilter !== 'all') {
     const filterKey = statusFilter.toUpperCase();
     filtered = filtered.filter(exp => {
-      const status = String(exp?.status || '').toUpperCase();
-      const abortReason = String(exp?.abort_reason || '').toUpperCase();
+      const { label } = formatExperimentStatus(exp?.status, exp?.abort_reason);
 
       if (filterKey === 'MANUAL_STOP') {
-        return abortReason === 'MANUAL_STOP' || status === 'MANUAL_STOP';
+        return label === 'Manually stopped';
       }
       if (filterKey === 'COMPLETED') {
-        return status === 'COMPLETED' && abortReason !== 'MANUAL_STOP';
+        return label === 'COMPLETED';
       }
-      return status === filterKey;
+      if (filterKey === 'ABORTED_SLO_BREACH' || filterKey === 'ABORTED') {
+        return label === 'ABORTED (SLO BREACH)';
+      }
+      if (filterKey === 'RUNNING') {
+        return label === 'RUNNING';
+      }
+      return String(exp?.status || '').toUpperCase() === filterKey;
     });
   }
 
@@ -183,7 +218,7 @@ export function formatConfidence(score) {
  * @returns {{ isUnconfirmed: boolean, unconfirmedText: string|null, reportSource: string|null, regularBullets: Array<string> }}
  */
 export function extractReportMeta(aiReport) {
-  if (!aiReport || !Array.isArray(aiReport.evidence_bullets)) {
+  if (!aiReport) {
     return {
       isUnconfirmed: false,
       unconfirmedText: null,
@@ -196,15 +231,18 @@ export function extractReportMeta(aiReport) {
   let unconfirmedText = null;
   let reportSource = null;
   const regularBullets = [];
+  const bullets = Array.isArray(aiReport.evidence_bullets) ? aiReport.evidence_bullets : [];
 
-  for (const bullet of aiReport.evidence_bullets) {
+  for (const bullet of bullets) {
     if (typeof bullet !== 'string') continue;
 
-    // Check for unmeasured retry or circuit-breaker text
-    if (
-      bullet.includes('Retry count and circuit-breaker') ||
-      (bullet.includes('circuit-breaker') && bullet.includes('cannot be confirmed'))
-    ) {
+    const lower = bullet.toLowerCase();
+    const mentionsResilience = lower.includes('circuit-breaker') || lower.includes('circuit breaker') || lower.includes('retry');
+    const mentionsUnmeasured = lower.includes('not measured') || lower.includes('unmeasured') ||
+      lower.includes('cannot be confirmed') || lower.includes('unconfirmed') || lower.includes('not proof');
+
+    // Show report's own wording verbatim wherever it states retry/circuit-breaker behavior is unmeasured/unconfirmed
+    if (mentionsResilience && mentionsUnmeasured && !unconfirmedText) {
       isUnconfirmed = true;
       unconfirmedText = bullet;
       continue;
@@ -224,6 +262,19 @@ export function extractReportMeta(aiReport) {
     }
 
     regularBullets.push(bullet);
+  }
+
+  // Fallback check on root_cause_summary if not already in bullets
+  if (!unconfirmedText && typeof aiReport.root_cause_summary === 'string') {
+    const summary = aiReport.root_cause_summary;
+    const lowerSummary = summary.toLowerCase();
+    if (
+      (lowerSummary.includes('circuit-breaker') || lowerSummary.includes('circuit breaker') || lowerSummary.includes('retry')) &&
+      (lowerSummary.includes('not proof') || lowerSummary.includes('cannot attribute') || lowerSummary.includes('unconfirmed') || lowerSummary.includes('not measured'))
+    ) {
+      isUnconfirmed = true;
+      unconfirmedText = summary;
+    }
   }
 
   return {

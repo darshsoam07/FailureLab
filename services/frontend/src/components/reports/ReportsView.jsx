@@ -13,6 +13,7 @@ import { PostMortemPanel } from './PostMortemPanel.jsx';
 import {
   calculateReportsKpis,
   filterAndSortExperiments,
+  calculatePagination,
 } from '../../lib/reportsLogic.js';
 
 /**
@@ -31,7 +32,6 @@ export function ReportsView({
   const [offset, setOffset] = useState(0);
   const limit = 10;
   const [loadedExperiments, setLoadedExperiments] = useState([]);
-  const [totalLoaded, setTotalLoaded] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -41,14 +41,13 @@ export function ReportsView({
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortDirection, setSortDirection] = useState('desc');
 
-  // Load paginated experiments from GET /api/experiments
+  // Load paginated experiments from GET /api/experiments using real limit/offset
   const fetchExperiments = useCallback(async (signal) => {
     try {
       setLoading(true);
-      const rows = await client.getExperiments({ limit: 100, offset, signal });
+      const rows = await client.getExperiments({ limit, offset, signal });
       if (!signal?.aborted) {
         setLoadedExperiments(rows || []);
-        setTotalLoaded((rows || []).length);
         setError(null);
         // Default select first item if none selected
         if (!selectedId && rows && rows.length > 0) {
@@ -65,7 +64,7 @@ export function ReportsView({
         setLoading(false);
       }
     }
-  }, [client, offset, selectedId]);
+  }, [client, limit, offset, selectedId]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -134,6 +133,11 @@ export function ReportsView({
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   }
+
+  // Compute pure pagination
+  const pagination = useMemo(() => {
+    return calculatePagination({ offset, limit, currentCount: loadedExperiments.length });
+  }, [offset, limit, loadedExperiments.length]);
 
   return (
     <div className="space-y-6">
@@ -237,11 +241,11 @@ export function ReportsView({
           onChangeStatusFilter={setStatusFilter}
           sortDirection={sortDirection}
           onToggleSortDirection={() => setSortDirection(prev => prev === 'desc' ? 'asc' : 'desc')}
+          pagination={pagination}
           offset={offset}
           limit={limit}
-          totalLoaded={totalLoaded}
-          onPrevPage={() => setOffset(prev => Math.max(0, prev - limit))}
-          onNextPage={() => setOffset(prev => prev + limit)}
+          onPrevPage={() => setOffset(pagination.prevOffset)}
+          onNextPage={() => setOffset(pagination.nextOffset)}
           loading={loading}
           error={error}
         />

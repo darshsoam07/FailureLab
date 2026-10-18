@@ -131,6 +131,7 @@ export function formatExperimentStatus(experimentOrStatus, abortReason = null) {
       return { label: 'RUNNING', variant: 'info', dot: true, pulse: true };
     case 'PLANNED':
       return { label: 'PLANNED', variant: 'neutral', dot: true, pulse: false };
+    case 'ABORTED':
     case 'ABORTED_SLO_BREACH':
       return { label: 'ABORTED (SLO BREACH)', variant: 'breached', dot: true, pulse: false };
     case 'MANUAL_STOP':

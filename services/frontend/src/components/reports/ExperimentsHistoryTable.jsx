@@ -25,14 +25,18 @@ export function ExperimentsHistoryTable({
   onChangeStatusFilter,
   sortDirection,
   onToggleSortDirection,
-  offset,
-  limit,
-  totalLoaded,
+  pagination,
+  offset = 0,
+  limit = 10,
   onPrevPage,
   onNextPage,
   loading = false,
   error = null,
 }) {
+  const pageLabel = pagination?.pageLabel || `Page ${Math.floor(offset / limit) + 1}`;
+  const hasPrev = pagination ? pagination.hasPrev : offset > 0;
+  const hasNext = pagination ? pagination.hasNext : experiments.length >= limit;
+
   return (
     <div className="rounded-xl bg-[#121A2F] border border-[#1E2942] p-5 shadow-md space-y-4">
       {/* Controls Bar */}
@@ -40,7 +44,7 @@ export function ExperimentsHistoryTable({
         <div className="flex items-center gap-2">
           <Layers className="h-4 w-4 text-[#00e5ff]" />
           <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
-            Audit Trail ({experiments.length} of {totalLoaded} loaded)
+            Audit Trail ({pageLabel} · {experiments.length} loaded)
           </h3>
         </div>
 
@@ -231,7 +235,7 @@ export function ExperimentsHistoryTable({
         <button
           type="button"
           aria-label="Previous page"
-          disabled={offset === 0}
+          disabled={!hasPrev}
           onClick={onPrevPage}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#1E2942] bg-[#0B1020] hover:text-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
         >
@@ -239,14 +243,14 @@ export function ExperimentsHistoryTable({
           <span>Previous</span>
         </button>
 
-        <span>
-          Page {Math.floor(offset / limit) + 1} (showing {experiments.length} of loaded)
+        <span className="font-semibold text-[#dee1f9]">
+          {pageLabel}
         </span>
 
         <button
           type="button"
           aria-label="Next page"
-          disabled={totalLoaded <= offset + limit}
+          disabled={!hasNext}
           onClick={onNextPage}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#1E2942] bg-[#0B1020] hover:text-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
         >

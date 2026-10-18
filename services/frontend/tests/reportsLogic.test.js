@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   calculateReportsKpis,
+  calculatePagination,
   filterAndSortExperiments,
   formatRowData,
   formatConfidence,
@@ -9,7 +10,7 @@ import {
   buildExportJson,
 } from '../src/lib/reportsLogic.js';
 
-test('calculateReportsKpis counts strictly from loaded experiments without invented metrics', () => {
+test('calculateReportsKpis accurately classifies all four realistic outcomes using backend enums', () => {
   // Empty
   assert.deepEqual(calculateReportsKpis([]), {
     loadedCount: 0,
@@ -18,21 +19,59 @@ test('calculateReportsKpis counts strictly from loaded experiments without inven
     manuallyStoppedCount: 0,
   });
 
-  // Mixed experiments
-  const experiments = [
-    { id: '1', status: 'COMPLETED', abort_reason: null },
-    { id: '2', status: 'COMPLETED', abort_reason: null },
-    { id: '3', status: 'ABORTED_SLO_BREACH', abort_reason: 'SLO breached for 3 consecutive snapshots' },
-    { id: '4', status: 'COMPLETED', abort_reason: 'MANUAL_STOP' },
-    { id: '5', status: 'MANUAL_STOP', abort_reason: null },
-    { id: '6', status: 'RUNNING', abort_reason: null },
+  // Realistic backend rows corresponding to services/common/models.py and watchdog.py
+  const realisticRows = [
+    // 1. Completed normal run (COMPLETED, abort_reason: null)
+    { id: 'exp-1', status: 'COMPLETED', abort_reason: null },
+    // 2. Watchdog trip (ABORTED_SLO_BREACH with breach reason)
+    {
+      id: 'exp-2',
+      status: 'ABORTED_SLO_BREACH',
+      abort_reason: 'SLO breached for 3 consecutive snapshots: snapshot 1: p95_latency_ms=620.0 > slo_max_p95_ms=500.0',
+    },
+    // 3. Manually stopped run (COMPLETED with abort_reason MANUAL_STOP)
+    { id: 'exp-3', status: 'COMPLETED', abort_reason: 'MANUAL_STOP' },
+    // 4. Running drill (RUNNING, abort_reason: null)
+    { id: 'exp-4', status: 'RUNNING', abort_reason: null },
   ];
 
-  const kpis = calculateReportsKpis(experiments);
-  assert.equal(kpis.loadedCount, 6);
-  assert.equal(kpis.completedCount, 2); // only normal completions
+  const kpis = calculateReportsKpis(realisticRows);
+  assert.equal(kpis.loadedCount, 4);
+  assert.equal(kpis.completedCount, 1);
   assert.equal(kpis.abortedSloCount, 1);
-  assert.equal(kpis.manuallyStoppedCount, 2); // 1 via abort_reason, 1 via status
+  assert.equal(kpis.manuallyStoppedCount, 1);
+});
+
+test('calculatePagination implements limit/offset and treats shorter page as last page', () => {
+  // Page 1 with full limit (10 items) -> hasNext is true, hasPrev is false
+  const p1 = calculatePagination({ offset: 0, limit: 10, currentCount: 10 });
+  assert.equal(p1.page, 1);
+  assert.equal(p1.pageLabel, 'Page 1');
+  assert.equal(p1.hasPrev, false);
+  assert.equal(p1.hasNext, true);
+  assert.equal(p1.prevOffset, 0);
+  assert.equal(p1.nextOffset, 10);
+
+  // Page 2 with fewer items than limit (7 items) -> treats as last page (hasNext is false)
+  const p2 = calculatePagination({ offset: 10, limit: 10, currentCount: 7 });
+  assert.equal(p2.page, 2);
+  assert.equal(p2.pageLabel, 'Page 2');
+  assert.equal(p2.hasPrev, true);
+  assert.equal(p2.hasNext, false);
+  assert.equal(p2.prevOffset, 0);
+  assert.equal(p2.nextOffset, 20);
+
+  // Single page with fewer items than limit (3 items) -> hasPrev false, hasNext false
+  const pSingle = calculatePagination({ offset: 0, limit: 10, currentCount: 3 });
+  assert.equal(pSingle.page, 1);
+  assert.equal(pSingle.hasPrev, false);
+  assert.equal(pSingle.hasNext, false);
+
+  // Offset 20, limit 10, count 0 (empty last page) -> hasPrev true, hasNext false
+  const pEmpty = calculatePagination({ offset: 20, limit: 10, currentCount: 0 });
+  assert.equal(pEmpty.page, 3);
+  assert.equal(pEmpty.hasPrev, true);
+  assert.equal(pEmpty.hasNext, false);
 });
 
 test('filterAndSortExperiments filters loaded page and sorts chronologically', () => {
@@ -128,10 +167,40 @@ test('extractReportMeta separates unconfirmed circuit-breaker text and detects r
 
   const meta = extractReportMeta(aiReport);
   assert.equal(meta.isUnconfirmed, true);
-  assert.ok(meta.unconfirmedText.includes('cannot be confirmed'));
+  assert.equal(
+    meta.unconfirmedText,
+    'Retry count and circuit-breaker state/transitions are not measured by TelemetrySnapshot; retry amplification or breaker activation cannot be confirmed from this timeline.'
+  );
   assert.equal(meta.reportSource, 'Live Structured-Output LLM');
   assert.equal(meta.regularBullets.length, 2);
   assert.equal(meta.regularBullets[0], 'First snapshot p95_latency_ms=120ms');
+
+  // Alternative wording without rigid phrase match (e.g. from an LLM)
+  const customReport = {
+    evidence_bullets: [
+      'P95 latency observed at 550ms',
+      'Telemetry snapshots do not record circuit-breaker state; breaker activation is unconfirmed.',
+    ],
+  };
+  const customMeta = extractReportMeta(customReport);
+  assert.equal(customMeta.isUnconfirmed, true);
+  assert.equal(
+    customMeta.unconfirmedText,
+    'Telemetry snapshots do not record circuit-breaker state; breaker activation is unconfirmed.'
+  );
+  assert.equal(customMeta.regularBullets.length, 1);
+
+  // When no unconfirmed statement exists: do NOT invent or add claims
+  const normalReport = {
+    evidence_bullets: [
+      'All 10 snapshots reported 0 errors',
+      'Peak latency was 45ms',
+    ],
+  };
+  const normalMeta = extractReportMeta(normalReport);
+  assert.equal(normalMeta.isUnconfirmed, false);
+  assert.equal(normalMeta.unconfirmedText, null);
+  assert.equal(normalMeta.regularBullets.length, 2);
 
   // Test missing or empty report
   assert.deepEqual(extractReportMeta(null), {
