@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { startVisiblePolling } from './lib/visiblePolling.js';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { api } from './api/client';
 import { usePolling } from './hooks/usePolling';
 
@@ -11,14 +12,12 @@ import { EmergencyStopModal } from './components/shell/EmergencyStopModal.jsx';
 import { ErrorBanner } from './components/common/ErrorBanner.jsx';
 
 // Feature Views & Components
-import { DashboardView } from './components/dashboard/DashboardView.jsx';
-import { ExperimentsView } from './components/experiments/ExperimentsView.jsx';
-import { ReportsView } from './components/reports/ReportsView.jsx';
+const DashboardView = lazy(() => import('./components/dashboard/DashboardView.jsx').then(m => ({ default: m.DashboardView })));
+const ExperimentsView = lazy(() => import('./components/experiments/ExperimentsView.jsx').then(m => ({ default: m.ExperimentsView })));
+const ReportsView = lazy(() => import('./components/reports/ReportsView.jsx').then(m => ({ default: m.ReportsView })));
 import TopologyBanner from './components/TopologyBanner.jsx';
-import ExperimentLauncher from './components/ExperimentLauncher.jsx';
-import ExperimentHistoryAndAIReport from './components/ExperimentHistoryAndAIReport.jsx';
-import { TopologyOverview } from './components/topology/TopologyOverview.jsx';
-import { SettingsView } from './components/settings/SettingsView.jsx';
+const TopologyOverview = lazy(() => import('./components/topology/TopologyOverview.jsx').then(m => ({ default: m.TopologyOverview })));
+const SettingsView = lazy(() => import('./components/settings/SettingsView.jsx').then(m => ({ default: m.SettingsView })));
 
 // Lib Utilities
 import { appendMetricsPoint } from './lib/metricsBuffer.js';
@@ -72,15 +71,13 @@ export default function App({ client = api }) {
 
   // Single shared polling effect for metrics summary and traffic status
   useEffect(() => {
-    const controller = new AbortController();
-    let timer;
-
-    async function pollTelemetry() {
-      const started = performance.now();
+    setMetrics(null);
+    setMetricsBuffer([]);
+    const polling = startVisiblePolling(async signal => {
       await Promise.allSettled([
-        client.getMetricsSummary({ signal: controller.signal, since: metricsSince })
+        client.getMetricsSummary({ signal: signal, since: metricsSince })
           .then(data => {
-            if (controller.signal.aborted) return;
+            if (signal.aborted) return;
             const now = Date.now();
             setMetrics(data);
             setLastMetricsUpdated(now);
@@ -88,33 +85,25 @@ export default function App({ client = api }) {
             setMetricsBuffer(prev => appendMetricsPoint(prev, data, now));
           })
           .catch(err => {
-            if (controller.signal.aborted) return;
+            if (signal.aborted) return;
             // On failure: retain last good data, set error banner, do NOT append null as 0
             setMetricsError(err.message || 'Metrics polling failed');
           }),
 
-        client.getTrafficStatus({ signal: controller.signal })
+        client.getTrafficStatus({ signal: signal })
           .then(data => {
-            if (controller.signal.aborted || trafficMutation.current) return;
+            if (signal.aborted || trafficMutation.current) return;
             setTraffic(data);
             setTrafficError(null);
           })
           .catch(err => {
-            if (controller.signal.aborted || trafficMutation.current) return;
+            if (signal.aborted || trafficMutation.current) return;
             setTrafficError(err.message || 'Traffic status polling failed');
           }),
       ]);
 
-      if (!controller.signal.aborted) {
-        timer = setTimeout(pollTelemetry, Math.max(0, 2000 - (performance.now() - started)));
-      }
-    }
-
-    pollTelemetry();
-    return () => {
-      controller.abort();
-      clearTimeout(timer);
-    };
+    }, 2000);
+    return () => polling.stop();
   }, [client, metricsSince]);
 
   // Single Detail Polling Source for Current / Most Recent Experiment
@@ -126,46 +115,34 @@ export default function App({ client = api }) {
   const isTargetRunning = latestExperiment?.status === 'RUNNING';
 
   useEffect(() => {
-    if (!targetExperimentId) {
+    if (!targetExperimentId || activeScreen !== 'experiments') {
       setExperimentDetail(null);
       setDetailError(null);
       return;
     }
 
-    const controller = new AbortController();
-    let timer;
-
-    async function pollDetail() {
-      const started = performance.now();
+    setExperimentDetail(null);
+    setDetailLoading(true);
+    const polling = startVisiblePolling(async signal => {
       try {
-        const data = await client.getExperiment(targetExperimentId, { signal: controller.signal });
-        if (!controller.signal.aborted) {
+        const data = await client.getExperiment(targetExperimentId, { signal: signal });
+        if (!signal.aborted) {
           setExperimentDetail(data);
           setDetailError(null);
           setDetailLoading(false);
         }
       } catch (err) {
-        if (!controller.signal.aborted) {
+        if (!signal.aborted) {
           // Retain last good data on error and display degraded message
           setDetailError(err.message || 'Failed to sync experiment detail');
           setDetailLoading(false);
         }
       }
 
-      // Single source of truth: poll GET /api/experiments/{id} ONLY while it is RUNNING
-      if (!controller.signal.aborted && isTargetRunning) {
-        timer = setTimeout(pollDetail, Math.max(0, 2000 - (performance.now() - started)));
-      }
-    }
-
-    setDetailLoading(true);
-    pollDetail();
-
-    return () => {
-      controller.abort();
-      clearTimeout(timer);
-    };
-  }, [client, targetExperimentId, isTargetRunning, revision]);
+      return isTargetRunning;
+    }, 2000);
+    return () => polling.stop();
+  }, [client, targetExperimentId, isTargetRunning, revision, activeScreen]);
 
   useEffect(() => () => mutation.current?.abort(), []);
   useEffect(() => {
@@ -247,6 +224,7 @@ export default function App({ client = api }) {
 
   return (
     <div className="min-h-screen bg-[#0B1020] text-[#dee1f9] flex flex-col md:flex-row antialiased font-sans">
+      <a href="#main" className="skip-link">Skip to content</a>
       {/* Desktop & Tablet Sidebar */}
       <SideNavBar
         activeScreen={activeScreen}
@@ -259,25 +237,25 @@ export default function App({ client = api }) {
         <TopNavBar
           activeScreen={activeScreen}
           activeExperiment={experiment}
-          controllerReadiness={controllerReadiness.data}
+          controllerReadiness={controllerReadiness.error ? null : controllerReadiness.data}
           controllerError={controllerReadiness.error}
           controllerLoading={controllerReadiness.loading}
           onOpenEmergencyStop={() => setIsEmergencyModalOpen(true)}
         />
 
         {/* Page Content: pb-36 guarantees mobile bottom nav + pinned stop bar never cover content */}
-        <main id="main" className="flex-1 px-4 py-6 sm:px-8 sm:py-8 pb-36 md:pb-12 max-w-[1440px] w-full mx-auto space-y-6">
+        <main id="main" tabIndex={-1} className="flex-1 px-4 py-6 sm:px-8 sm:py-8 pb-36 md:pb-12 max-w-[1440px] w-full mx-auto space-y-6">
           {/* Status Notices */}
           {notice && (
             <div
-              role="status"
+              role="status" aria-live="polite"
               className="rounded-xl border border-[#1E2942] bg-[#121A2F] px-4 py-3 text-xs font-mono text-[#c3f5ff] flex items-center justify-between shadow-md"
             >
               <span>{notice}</span>
               <button
                 type="button"
                 onClick={() => setNotice('')}
-                className="text-[#849396] hover:text-white text-xs underline font-sans cursor-pointer ml-3 shrink-0"
+                className="text-[#9aa9ac] hover:text-white text-xs underline font-sans cursor-pointer ml-3 shrink-0"
               >
                 Dismiss
               </button>
@@ -292,6 +270,8 @@ export default function App({ client = api }) {
             />
           )}
 
+          {(orderReadiness.error || controllerReadiness.error) && <p role="status" aria-live="polite" className="text-amber-200 text-sm">Readiness probe unavailable: {orderReadiness.error ? 'Order API' : ''} {controllerReadiness.error ? 'Controller' : ''}. Health signals are unknown until a response succeeds.</p>}
+          <Suspense fallback={<p role="status" aria-live="polite">Loading page…</p>}>
           {/* Screen Routing */}
           {activeScreen === 'dashboard' && (
             <DashboardView
@@ -305,8 +285,8 @@ export default function App({ client = api }) {
               trafficBusy={trafficBusy}
               trafficError={trafficError}
               onToggleTraffic={handleToggleTraffic}
-              orderReadiness={orderReadiness.data}
-              controllerReadiness={controllerReadiness.data}
+              orderReadiness={orderReadiness.error ? null : orderReadiness.data}
+              controllerReadiness={controllerReadiness.error ? null : controllerReadiness.data}
               onNavigate={setActiveScreen}
             />
           )}
@@ -316,8 +296,8 @@ export default function App({ client = api }) {
               <TopologyBanner
                 experiment={experiment}
                 stale={!loaded || Boolean(error)}
-                orderReadiness={orderReadiness.data}
-                controllerReadiness={controllerReadiness.data}
+                orderReadiness={orderReadiness.error ? null : orderReadiness.data}
+                controllerReadiness={controllerReadiness.error ? null : controllerReadiness.data}
                 onNavigate={setActiveScreen}
               />
               <ExperimentsView
@@ -352,21 +332,29 @@ export default function App({ client = api }) {
               controllerLastSuccessAt={controllerReadiness.lastSuccessAt}
               experiment={experiment}
               stale={!loaded || Boolean(error)}
-              orderReadiness={orderReadiness.data}
-              controllerReadiness={controllerReadiness.data}
+              orderReadiness={orderReadiness.error ? null : orderReadiness.data}
+              controllerReadiness={controllerReadiness.error ? null : controllerReadiness.data}
               onNavigate={setActiveScreen}
             />
           )}
 
           {activeScreen === 'settings' && (
             <SettingsView
-              controllerReadiness={controllerReadiness.data}
+              controllerReadiness={controllerReadiness.error ? null : controllerReadiness.data}
+              orderReadiness={orderReadiness.error ? null : orderReadiness.data}
+              controllerError={controllerReadiness.error}
+              orderError={orderReadiness.error}
+              catalogError={catalog.error}
+              controllerLastSuccessAt={controllerReadiness.lastSuccessAt}
+              orderLastSuccessAt={orderReadiness.lastSuccessAt}
+              apiPrefixes={client.displayPrefixes}
               catalog={catalog.data}
             />
           )}
+          </Suspense>
         </main>
 
-        <footer className="px-4 py-4 sm:px-8 border-t border-[#1E2942]/60 text-center sm:flex sm:justify-between font-mono text-[10px] text-[#849396] uppercase tracking-widest select-none">
+        <footer className="px-4 py-4 sm:px-8 border-t border-[#1E2942]/60 text-center sm:flex sm:justify-between font-mono text-[10px] text-[#9aa9ac] uppercase tracking-widest select-none">
           <span>FailureLab · AI-Assisted Resilience Engineering</span>
           <span className="hidden sm:inline">Transactional Outbox · Idempotent Fulfillment · SLO Watchdogs</span>
         </footer>

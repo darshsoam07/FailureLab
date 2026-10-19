@@ -1,20 +1,6 @@
 import React, { useState } from 'react';
-import {
-  Server,
-  Database,
-  Network,
-  Cpu,
-  Flame,
-  ShieldCheck,
-  AlertTriangle,
-  HelpCircle,
-  Zap,
-} from 'lucide-react';
-import {
-  TOPOLOGY_NODES,
-  TOPOLOGY_EDGES,
-  deriveEdgeHealth,
-} from '../../lib/topologyGraph.js';
+import { Server, Database, Network, Cpu, Flame, Zap } from 'lucide-react';
+import { TOPOLOGY_NODES, TOPOLOGY_EDGES, deriveEdgeHealth } from '../../lib/topologyGraph.js';
 
 const NODE_DIMS = { width: 180, height: 86 };
 
@@ -217,12 +203,12 @@ export function TopologyGraphView({
             <Network className="h-4 w-4 text-[#00e5ff]" />
             Architecture Graph
           </span>
-          <span className="text-[#849396] text-[11px] hidden sm:inline">
+          <span className="text-[#9aa9ac] text-[11px] hidden sm:inline">
             Click any service node to inspect probe checks and dependencies
           </span>
         </div>
 
-        <div className="flex items-center gap-3 text-[11px] text-[#849396]">
+        <div className="flex items-center gap-3 text-[11px] text-[#9aa9ac]">
           <span className="flex items-center gap-1">
             <span className="h-2 w-2 rounded-full bg-[#00e5ff]" />
             Healthy
@@ -239,10 +225,10 @@ export function TopologyGraphView({
       </div>
 
       {/* SVG Canvas (960 x 515) */}
-      <div className="relative w-full overflow-x-auto">
+      <div className="relative w-full">
         <svg
           viewBox="0 0 960 515"
-          className="w-full h-auto min-w-[760px] select-none"
+          className="w-full h-auto select-none"
           role="img"
           aria-label="FailureLab Distributed System Topology Diagram"
         >
@@ -347,7 +333,7 @@ export function TopologyGraphView({
                         isDegraded
                           ? 'bg-[#1e1507] text-amber-300 border-amber-500/60'
                           : edge.status === 'unknown'
-                          ? 'bg-[#0B1020]/90 text-[#849396] border-[#1E2942]'
+                          ? 'bg-[#0B1020]/90 text-[#9aa9ac] border-[#1E2942]'
                           : 'bg-[#0B1020]/90 text-[#dee1f9] border-[#1E2942]'
                       } ${isHovered ? 'ring-1 ring-[#00e5ff] scale-105' : ''}`}
                       title={`${edge.label} (${edge.protocol}) - ${edge.derivation}`}
@@ -403,7 +389,7 @@ export function TopologyGraphView({
                             isToxiproxyActive ? 'text-amber-400' : 'text-[#00e5ff]'
                           }`}
                         />
-                        <span className="text-[10px] font-mono uppercase tracking-wider text-[#849396] truncate">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-[#9aa9ac] truncate">
                           {node.layer}
                         </span>
                       </div>
@@ -432,7 +418,7 @@ export function TopologyGraphView({
                     </div>
 
                     {/* Bottom: Active Fault Glow or Check Detail */}
-                    <div className="text-[9px] font-mono truncate text-[#849396] border-t border-[#1E2942]/60 pt-1 w-full">
+                    <div className="text-[9px] font-mono truncate text-[#9aa9ac] border-t border-[#1E2942]/60 pt-1 w-full">
                       {isToxiproxyActive ? (
                         <span className="text-amber-300 font-semibold truncate block">
                           ⚡ FAULT: {experiment.fault_type}

@@ -1,18 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import {
-  X,
-  Server,
-  Zap,
-  ArrowRight,
-  ArrowDownRight,
-  ArrowUpLeft,
-  CheckCircle2,
-  AlertTriangle,
-  HelpCircle,
-  ExternalLink,
-  ShieldCheck,
-  Radio,
-} from 'lucide-react';
+import { X, Zap, ArrowDownRight, ArrowUpLeft, HelpCircle, ExternalLink } from 'lucide-react';
 import { deriveNodeDetails } from '../../lib/topologyGraph.js';
 
 /**
@@ -37,6 +24,8 @@ export function TopologyDetailPanel({
   onNavigate,
 }) {
   const panelRef = useRef(null);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
 
   const details = deriveNodeDetails({
     nodeId,
@@ -52,7 +41,7 @@ export function TopologyDetailPanel({
     function handleKeyDown(e) {
       if (e.key === 'Escape') {
         e.preventDefault();
-        onClose();
+        closeRef.current();
       }
     }
 
@@ -64,7 +53,7 @@ export function TopologyDetailPanel({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [onClose]);
+  }, [nodeId]);
 
   if (!details) return null;
 
@@ -85,7 +74,7 @@ export function TopologyDetailPanel({
             <span className="px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider bg-[#1E2942] text-[#00e5ff] border border-[#1E2942]">
               {details.layer} Layer
             </span>
-            <span className="text-[11px] font-mono text-[#849396]">
+            <span className="text-[11px] font-mono text-[#9aa9ac]">
               {details.ports.length > 1
                 ? `Ports :${details.ports.join(', :')}`
                 : `Port :${details.ports[0]}`}
@@ -95,14 +84,14 @@ export function TopologyDetailPanel({
           <h3 className="text-lg font-bold text-white tracking-tight mt-1">
             {details.name}
           </h3>
-          <p className="text-xs font-mono text-[#849396]">{details.role}</p>
+          <p className="text-xs font-mono text-[#9aa9ac]">{details.role}</p>
         </div>
 
         <button
           type="button"
           onClick={onClose}
           aria-label="Close node detail panel"
-          className="p-1.5 rounded-lg text-[#849396] hover:text-white hover:bg-[#1E2942] transition-colors cursor-pointer"
+          className="p-1.5 rounded-lg text-[#9aa9ac] hover:text-white hover:bg-[#1E2942] transition-colors cursor-pointer"
         >
           <X className="h-4 w-4" />
         </button>
@@ -111,7 +100,7 @@ export function TopologyDetailPanel({
       {/* Health Status & Probe Signal Card */}
       <div className="rounded-xl bg-[#0B1020] border border-[#1E2942] p-4 space-y-3">
         <div className="flex items-center justify-between text-xs font-mono">
-          <span className="text-[#849396] font-semibold uppercase tracking-wider">
+          <span className="text-[#9aa9ac] font-semibold uppercase tracking-wider">
             Health Signal
           </span>
           <span
@@ -122,7 +111,7 @@ export function TopologyDetailPanel({
                 ? 'bg-amber-950/60 text-amber-300 border border-amber-500/40'
                 : details.status === 'unhealthy'
                 ? 'bg-rose-950/60 text-rose-300 border border-rose-500/40'
-                : 'bg-slate-900 text-[#849396] border border-slate-700'
+                : 'bg-slate-900 text-[#9aa9ac] border border-slate-700'
             }`}
           >
             {details.status}
@@ -136,7 +125,7 @@ export function TopologyDetailPanel({
         {/* Real Readiness Probe Checks */}
         {details.probeChecks.length > 0 && (
           <div className="pt-2 border-t border-[#1E2942]/70 space-y-1.5">
-            <span className="text-[10px] font-mono text-[#849396] uppercase tracking-wider block">
+            <span className="text-[10px] font-mono text-[#9aa9ac] uppercase tracking-wider block">
               Probed Checks ({details.probeChecks[0].source}):
             </span>
             {details.probeChecks.map((chk, idx) => (
@@ -144,7 +133,7 @@ export function TopologyDetailPanel({
                 key={idx}
                 className="flex items-center justify-between text-[11px] font-mono px-2 py-1 rounded bg-[#121A2F] border border-[#1E2942]"
               >
-                <span className="text-[#849396]">{chk.checkName}</span>
+                <span className="text-[#9aa9ac]">{chk.checkName}</span>
                 <span
                   className={chk.passing ? 'text-[#00e5ff] font-semibold' : 'text-amber-400 font-semibold'}
                 >
@@ -158,22 +147,22 @@ export function TopologyDetailPanel({
         {/* Unprobed Node Reason Callout */}
         {details.unprobedReason && (
           <div className="pt-2 border-t border-[#1E2942]/70">
-            <div className="flex items-start gap-2 text-xs font-mono text-[#849396] bg-[#121A2F] p-2.5 rounded-lg border border-[#1E2942]">
-              <HelpCircle className="h-4 w-4 text-[#849396] shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2 text-xs font-mono text-[#9aa9ac] bg-[#121A2F] p-2.5 rounded-lg border border-[#1E2942]">
+              <HelpCircle className="h-4 w-4 text-[#9aa9ac] shrink-0 mt-0.5" />
               <span>{details.unprobedReason}</span>
             </div>
           </div>
         )}
 
         {/* Last Probe Time */}
-        <div className="text-[10px] font-mono text-[#849396] pt-1">
+        <div className="text-[10px] font-mono text-[#9aa9ac] pt-1">
           Last probe (client successful poll): <span className="text-[#dee1f9]">{details.lastProbeTime}</span>
         </div>
       </div>
 
       {/* Description */}
       <div className="space-y-1.5">
-        <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-[#849396]">
+        <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-[#9aa9ac]">
           Service Architecture
         </h4>
         <p className="text-xs text-[#dee1f9] leading-relaxed font-sans">
@@ -189,7 +178,7 @@ export function TopologyDetailPanel({
               <Zap className="h-4 w-4 text-amber-400" />
               Toxiproxy Chaos Engine
             </span>
-            <span className="text-[10px] font-mono text-[#849396] px-1.5 py-0.5 rounded bg-[#121A2F] border border-[#1E2942]">
+            <span className="text-[10px] font-mono text-[#9aa9ac] px-1.5 py-0.5 rounded bg-[#121A2F] border border-[#1E2942]">
               Mode: {details.toxiproxyMode}
             </span>
           </div>
@@ -207,7 +196,7 @@ export function TopologyDetailPanel({
               </pre>
             </div>
           ) : (
-            <p className="text-xs font-mono text-[#849396]">
+            <p className="text-xs font-mono text-[#9aa9ac]">
               No active fault injected. Toxiproxy operates in {details.toxiproxyMode} proxy mode on port 8475.
             </p>
           )}
@@ -230,12 +219,12 @@ export function TopologyDetailPanel({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
         {/* Incoming */}
         <div className="space-y-1.5">
-          <h4 className="text-[11px] font-bold font-mono uppercase tracking-wider text-[#849396] flex items-center gap-1">
+          <h4 className="text-[11px] font-bold font-mono uppercase tracking-wider text-[#9aa9ac] flex items-center gap-1">
             <ArrowDownRight className="h-3 w-3 text-[#00e5ff]" />
             Incoming ({details.incoming.length})
           </h4>
           {details.incoming.length === 0 ? (
-            <div className="text-[11px] font-mono text-[#849396] italic">None</div>
+            <div className="text-[11px] font-mono text-[#9aa9ac] italic">None</div>
           ) : (
             <div className="space-y-1">
               {details.incoming.map((conn, idx) => (
@@ -244,7 +233,7 @@ export function TopologyDetailPanel({
                   className="p-1.5 rounded bg-[#0B1020] border border-[#1E2942] text-[10px] font-mono text-[#dee1f9] leading-tight"
                 >
                   <div className="font-semibold text-white">{conn.fromName}</div>
-                  <div className="text-[#849396] text-[9px]">{conn.label} · {conn.protocol}</div>
+                  <div className="text-[#9aa9ac] text-[9px]">{conn.label} · {conn.protocol}</div>
                 </div>
               ))}
             </div>
@@ -253,12 +242,12 @@ export function TopologyDetailPanel({
 
         {/* Outgoing */}
         <div className="space-y-1.5">
-          <h4 className="text-[11px] font-bold font-mono uppercase tracking-wider text-[#849396] flex items-center gap-1">
+          <h4 className="text-[11px] font-bold font-mono uppercase tracking-wider text-[#9aa9ac] flex items-center gap-1">
             <ArrowUpLeft className="h-3 w-3 text-[#00e5ff]" />
             Outgoing ({details.outgoing.length})
           </h4>
           {details.outgoing.length === 0 ? (
-            <div className="text-[11px] font-mono text-[#849396] italic">None</div>
+            <div className="text-[11px] font-mono text-[#9aa9ac] italic">None</div>
           ) : (
             <div className="space-y-1">
               {details.outgoing.map((conn, idx) => (
@@ -267,7 +256,7 @@ export function TopologyDetailPanel({
                   className="p-1.5 rounded bg-[#0B1020] border border-[#1E2942] text-[10px] font-mono text-[#dee1f9] leading-tight"
                 >
                   <div className="font-semibold text-white">{conn.toName}</div>
-                  <div className="text-[#849396] text-[9px]">{conn.label} · {conn.protocol}</div>
+                  <div className="text-[#9aa9ac] text-[9px]">{conn.label} · {conn.protocol}</div>
                 </div>
               ))}
             </div>

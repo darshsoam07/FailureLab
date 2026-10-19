@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  LayoutDashboard,
-  FlaskConical,
-  FileText,
-  Network,
-  Settings,
-} from 'lucide-react';
+import { LayoutDashboard, FlaskConical, FileText, Network, Settings } from 'lucide-react';
 
 const NAV_CONFIG = [
   { id: 'dashboard', label: 'Dashboard', Icon: LayoutDashboard },
@@ -40,7 +34,7 @@ export function MobileNavBar({ activeScreen, onSelectScreen, isRunning = false }
             className={`flex flex-col items-center justify-center flex-1 py-1 rounded-lg transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00e5ff] ${
               isActive
                 ? 'text-[#00e5ff] font-semibold'
-                : 'text-[#849396] hover:text-[#dee1f9]'
+                : 'text-[#9aa9ac] hover:text-[#dee1f9]'
             }`}
           >
             <span className="relative">

@@ -61,7 +61,7 @@ export function KpiCard({
       className={`rounded-xl bg-[#121A2F] border ${cardBorderClasses} p-4 flex flex-col justify-between hover:border-[#22304D] transition-all relative overflow-hidden group shadow-md ${className}`}
     >
       {/* Top Eyebrow Row */}
-      <div className="flex items-center justify-between text-[10px] font-sans font-semibold text-[#849396]">
+      <div className="flex items-center justify-between text-[10px] font-sans font-semibold text-[#9aa9ac]">
         <span className="tracking-widest uppercase">{title}</span>
         {subtitle && (
           <span
@@ -78,7 +78,7 @@ export function KpiCard({
       <div className="my-1.5 flex items-baseline justify-between gap-2">
         <span className={`font-mono text-[28px] leading-8 font-semibold ${valueColor}`}>
           {value}
-          {unit && <span className="ml-1 text-[18px] font-normal text-[#849396]">{unit}</span>}
+          {unit && <span className="ml-1 text-[18px] font-normal text-[#9aa9ac]">{unit}</span>}
         </span>
         {(badgeLabel || status !== 'neutral') && (
           <StatusBadge

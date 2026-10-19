@@ -1,20 +1,9 @@
+import { startVisiblePolling } from '../../lib/visiblePolling.js';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import {
-  FileText,
-  Download,
-  CheckCircle2,
-  AlertTriangle,
-  PowerOff,
-  Layers,
-  Sparkles,
-} from 'lucide-react';
+import { FileText, Download, CheckCircle2, AlertTriangle, PowerOff, Layers, Sparkles } from 'lucide-react';
 import { ExperimentsHistoryTable } from './ExperimentsHistoryTable.jsx';
 import { PostMortemPanel } from './PostMortemPanel.jsx';
-import {
-  calculateReportsKpis,
-  filterAndSortExperiments,
-  calculatePagination,
-} from '../../lib/reportsLogic.js';
+import { calculateReportsKpis, filterAndSortExperiments, calculatePagination } from '../../lib/reportsLogic.js';
 
 /**
  * Phase 5 Reports & Audit View:
@@ -50,8 +39,8 @@ export function ReportsView({
         setLoadedExperiments(rows || []);
         setError(null);
         // Default select first item if none selected
-        if (!selectedId && rows && rows.length > 0) {
-          setSelectedId(rows[0].id);
+        if (rows && rows.length > 0) {
+          setSelectedId(current => current ?? rows[0].id);
         }
       }
     } catch (err) {
@@ -64,30 +53,12 @@ export function ReportsView({
         setLoading(false);
       }
     }
-  }, [client, limit, offset, selectedId]);
+  }, [client, limit, offset]);
 
   useEffect(() => {
-    const controller = new AbortController();
-    fetchExperiments(controller.signal);
-    return () => controller.abort();
+    const polling = startVisiblePolling(async signal => { await fetchExperiments(signal); return false; });
+    return () => polling.stop();
   }, [fetchExperiments, revision]);
-
-  // Fetch selected detail to display Peak P95 in table without N+1 calls
-  useEffect(() => {
-    if (!selectedId) {
-      setSelectedDetail(null);
-      return;
-    }
-    const controller = new AbortController();
-    client.getExperiment(selectedId, { signal: controller.signal })
-      .then(data => {
-        if (!controller.signal.aborted) setSelectedDetail(data);
-      })
-      .catch(() => {
-        // detail failure handled inside panel
-      });
-    return () => controller.abort();
-  }, [client, selectedId]);
 
   // Compute KPIs strictly from loaded experiments
   const kpis = useMemo(() => {
@@ -150,7 +121,7 @@ export function ReportsView({
               Resilience Audit & Post-Mortem Reports
             </h2>
           </div>
-          <p className="text-xs text-[#849396] mt-1">
+          <p className="text-xs text-[#9aa9ac] mt-1">
             Historical resilience validation records, telemetry snapshots, and automated AI SRE root-cause assessments.
           </p>
         </div>
@@ -170,7 +141,7 @@ export function ReportsView({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* KPI 1: Loaded */}
         <div className="rounded-xl bg-[#121A2F] border border-[#1E2942] p-4 shadow-sm">
-          <div className="text-[10px] font-sans font-semibold text-[#849396] uppercase tracking-wider flex items-center justify-between">
+          <div className="text-[10px] font-sans font-semibold text-[#9aa9ac] uppercase tracking-wider flex items-center justify-between">
             <span>Loaded Experiments</span>
             <Layers className="h-3.5 w-3.5 text-[#00e5ff]" />
           </div>
@@ -180,12 +151,12 @@ export function ReportsView({
               ARCHIVED
             </span>
           </div>
-          <p className="text-[11px] font-mono text-[#849396]">of loaded experiments</p>
+          <p className="text-[11px] font-mono text-[#9aa9ac]">of loaded experiments</p>
         </div>
 
         {/* KPI 2: Completed */}
         <div className="rounded-xl bg-[#121A2F] border border-[#1E2942] p-4 shadow-sm">
-          <div className="text-[10px] font-sans font-semibold text-[#849396] uppercase tracking-wider flex items-center justify-between">
+          <div className="text-[10px] font-sans font-semibold text-[#9aa9ac] uppercase tracking-wider flex items-center justify-between">
             <span>Completed Drills</span>
             <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
           </div>
@@ -195,12 +166,12 @@ export function ReportsView({
               NORMAL
             </span>
           </div>
-          <p className="text-[11px] font-mono text-[#849396]">of loaded experiments</p>
+          <p className="text-[11px] font-mono text-[#9aa9ac]">of loaded experiments</p>
         </div>
 
         {/* KPI 3: Aborted by SLO */}
         <div className="rounded-xl bg-[#121A2F] border border-[#1E2942] p-4 shadow-sm">
-          <div className="text-[10px] font-sans font-semibold text-[#849396] uppercase tracking-wider flex items-center justify-between">
+          <div className="text-[10px] font-sans font-semibold text-[#9aa9ac] uppercase tracking-wider flex items-center justify-between">
             <span>Aborted by SLO</span>
             <AlertTriangle className="h-3.5 w-3.5 text-red-400" />
           </div>
@@ -210,12 +181,12 @@ export function ReportsView({
               WATCHDOG
             </span>
           </div>
-          <p className="text-[11px] font-mono text-[#849396]">of loaded experiments</p>
+          <p className="text-[11px] font-mono text-[#9aa9ac]">of loaded experiments</p>
         </div>
 
         {/* KPI 4: Manually Stopped */}
         <div className="rounded-xl bg-[#121A2F] border border-[#1E2942] p-4 shadow-sm">
-          <div className="text-[10px] font-sans font-semibold text-[#849396] uppercase tracking-wider flex items-center justify-between">
+          <div className="text-[10px] font-sans font-semibold text-[#9aa9ac] uppercase tracking-wider flex items-center justify-between">
             <span>Manually Stopped</span>
             <PowerOff className="h-3.5 w-3.5 text-amber-400" />
           </div>
@@ -225,7 +196,7 @@ export function ReportsView({
               OPERATOR
             </span>
           </div>
-          <p className="text-[11px] font-mono text-[#849396]">of loaded experiments</p>
+          <p className="text-[11px] font-mono text-[#9aa9ac]">of loaded experiments</p>
         </div>
       </div>
 
@@ -255,6 +226,7 @@ export function ReportsView({
           <PostMortemPanel
             key={selectedId}
             experimentId={selectedId}
+            onDetail={setSelectedDetail}
             catalog={catalog}
             client={client}
             onStageProposal={onStageProposal}
@@ -266,7 +238,7 @@ export function ReportsView({
             <h4 className="text-sm font-bold text-white font-mono uppercase tracking-wider">
               No Experiment Selected
             </h4>
-            <p className="text-xs text-[#849396] mt-1 max-w-sm mx-auto">
+            <p className="text-xs text-[#9aa9ac] mt-1 max-w-sm mx-auto">
               Select an experiment from the audit trail to inspect post-mortem findings, heuristic confidence, and AI recommendations.
             </p>
           </div>

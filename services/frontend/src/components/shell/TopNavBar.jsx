@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldAlert, AlertTriangle, CheckCircle2, RefreshCw, Radio } from 'lucide-react';
+import { ShieldAlert, AlertTriangle, CheckCircle2, RefreshCw } from 'lucide-react';
 import { getPageTitle, canEmergencyStop, deriveHealthPillState } from '../../lib/shell.js';
 
 /**
@@ -147,11 +147,11 @@ export function TopNavBar({
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold tracking-wider transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 ${
             stopConfig.enabled
               ? 'bg-[#93000a] text-white border border-red-500/80 hover:bg-red-600 glow-red cursor-pointer shadow-lg active:scale-95'
-              : 'bg-[#121A2F]/80 text-[#849396]/60 border border-[#1E2942] cursor-not-allowed opacity-60'
+              : 'bg-[#121A2F]/80 text-[#9aa9ac]/60 border border-[#1E2942] cursor-not-allowed opacity-60'
           }`}
         >
           <ShieldAlert
-            className={`h-4 w-4 shrink-0 ${stopConfig.enabled ? 'text-red-300 animate-pulse' : 'text-[#849396]/50'}`}
+            className={`h-4 w-4 shrink-0 ${stopConfig.enabled ? 'text-red-300 animate-pulse' : 'text-[#9aa9ac]/50'}`}
             aria-hidden="true"
           />
           <span className="hidden sm:inline">

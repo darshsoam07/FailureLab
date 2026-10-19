@@ -32,7 +32,7 @@ export function MobilePinnedStopBar({ experiment, onTriggerStop }) {
       <button
         type="button"
         onClick={onTriggerStop}
-        className="shrink-0 px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white font-mono text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+        className="shrink-0 px-3 py-1.5 rounded-lg bg-[#b91c1c] hover:bg-[#991b1b] text-white font-mono text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
       >
         <ShieldAlert className="h-4 w-4" />
         <span>ABORT</span>

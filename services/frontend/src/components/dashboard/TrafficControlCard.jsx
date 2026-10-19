@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Sliders, RefreshCw, AlertTriangle, ArrowUpRight } from 'lucide-react';
+import { Sliders, AlertTriangle } from 'lucide-react';
 import { clampRps, calculateSuccessFidelity } from '../../lib/traffic.js';
 
 /**
@@ -80,7 +80,7 @@ export function TrafficControlCard({
             <div className="text-[13px] font-medium text-[#dee1f9]">
               Background Traffic
             </div>
-            <div className="text-[11px] text-[#849396] font-mono">
+            <div className="text-[11px] text-[#9aa9ac] font-mono">
               Synthetic customer order loop
             </div>
           </div>
@@ -111,12 +111,12 @@ export function TrafficControlCard({
           <div className="flex items-center justify-between mb-1.5">
             <label
               htmlFor="rps-range"
-              className="text-[10px] font-sans font-semibold text-[#849396] uppercase tracking-wider"
+              className="text-[10px] font-sans font-semibold text-[#9aa9ac] uppercase tracking-wider"
             >
               REQUESTS PER SECOND
             </label>
             <span className="font-mono text-[16px] text-[#00e5ff] font-semibold">
-              {rps} <span className="text-[11px] font-normal text-[#849396]">req/s</span>
+              {rps} <span className="text-[11px] font-normal text-[#9aa9ac]">req/s</span>
             </span>
           </div>
 
@@ -132,7 +132,7 @@ export function TrafficControlCard({
             className="w-full h-1.5 bg-[#1E2942] rounded-lg appearance-none cursor-pointer accent-[#00e5ff] disabled:opacity-50"
           />
 
-          <div className="flex justify-between items-center text-[10px] font-mono text-[#849396] mt-1.5">
+          <div className="flex justify-between items-center text-[10px] font-mono text-[#9aa9ac] mt-1.5">
             <span>1 req/s (min)</span>
             <span className="text-amber-400/80">Backend bound: 10 max</span>
             <span>10 req/s</span>
@@ -144,7 +144,7 @@ export function TrafficControlCard({
       <div className="mt-4 pt-3 border-t border-[#1E2942] space-y-2">
         <div className="grid grid-cols-2 gap-2 text-center">
           <div className="p-2 rounded bg-[#0B1020] border border-[#1E2942]">
-            <div className="text-[10px] font-sans font-semibold text-[#849396] uppercase tracking-wider">
+            <div className="text-[10px] font-sans font-semibold text-[#9aa9ac] uppercase tracking-wider">
               Sent Attempts
             </div>
             <div className="text-[14px] font-mono text-[#dee1f9] font-semibold mt-0.5 tabular-nums">
@@ -153,7 +153,7 @@ export function TrafficControlCard({
           </div>
 
           <div className="p-2 rounded bg-[#0B1020] border border-[#1E2942]">
-            <div className="text-[10px] font-sans font-semibold text-[#849396] uppercase tracking-wider">
+            <div className="text-[10px] font-sans font-semibold text-[#9aa9ac] uppercase tracking-wider">
               Accepted Orders
             </div>
             <div className="text-[14px] font-mono text-emerald-400 font-semibold mt-0.5 tabular-nums">
@@ -165,7 +165,7 @@ export function TrafficControlCard({
         {/* Success Fidelity Progress Bar */}
         <div className="p-2.5 rounded bg-[#0B1020] border border-[#1E2942]">
           <div className="flex justify-between items-center text-[11px] font-mono mb-1.5">
-            <span className="text-[#849396]">Success Fidelity</span>
+            <span className="text-[#9aa9ac]">Success Fidelity</span>
             <span className={fidelity >= 95 ? 'text-emerald-400 font-semibold' : 'text-amber-400 font-semibold'}>
               {traffic ? `${fidelity}%` : '—'}
             </span>

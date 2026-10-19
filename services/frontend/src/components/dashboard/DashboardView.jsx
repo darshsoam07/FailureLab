@@ -49,7 +49,7 @@ export function DashboardView({
   const isStale = Boolean(metricsError || stale);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6"><h2 className="sr-only">Live service telemetry</h2>
       {/* Telemetry Polling Error Banner (retains last good data below) */}
       {metricsError && (
         <ErrorBanner

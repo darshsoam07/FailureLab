@@ -1,132 +1,32 @@
-import React from 'react';
-import { Settings, Shield, Sliders, Server, Info, ExternalLink } from 'lucide-react';
+import { catalogBounds, safeProxyPrefix } from '../../lib/settings.js';
 import { Card } from '../common/Card.jsx';
-import { SectionHeader } from '../common/SectionHeader.jsx';
-import { StatusBadge } from '../common/StatusBadge.jsx';
 
-/**
- * Read-only Settings & Environment view.
- *
- * @param {Object} props
- * @param {Object|null} props.controllerReadiness - Output of controller /ready
- * @param {Object|null} props.catalog - Catalog parameters
- */
-export function SettingsView({ controllerReadiness, catalog }) {
-  const checks = controllerReadiness?.checks || {};
-  const toxiproxyMode = controllerReadiness?.toxiproxy_mode || 'unknown';
+function ProbeTable({ name, data, error, lastSuccessAt }) {
+  const checks = Object.entries(data?.checks ?? {}).filter(([, value]) => typeof value === 'boolean');
+  return <Card>
+    <h3>{name} probes</h3>
+    <p className="text-sm text-[#9aa9ac]">Last probe (client successful poll): {lastSuccessAt ? new Date(lastSuccessAt).toLocaleString() : 'never'}</p>
+    {error ? <p role="alert">Probe unavailable. Last successful response may be stale.</p> : !data ? <p role="status">Loading readiness…</p> : <p>Status: {data.status}</p>}
+    {checks.length ? <table className="w-full text-sm mt-3"><caption className="sr-only">{name} readiness checks</caption><thead><tr><th scope="col" className="text-left">Check</th><th scope="col">Result</th></tr></thead><tbody>{checks.map(([key, value]) => <tr key={key}><th scope="row" className="text-left font-normal py-2">{key}</th><td className="text-center">{value ? 'PASS' : 'FAIL'}</td></tr>)}</tbody></table> : <p className="text-sm text-[#9aa9ac]">No probe checks available.</p>}
+  </Card>;
+}
 
-  return (
-    <div className="space-y-6">
-      <SectionHeader
-        title="System & Guardrail Settings"
-        icon={<Settings className="h-5 w-5" />}
-        subtitle="Read-only runtime configuration & safety bounds"
-      />
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Guardrail Policy */}
-        <Card hover={true}>
-          <div className="flex items-center gap-2 mb-3">
-            <Shield className="h-5 w-5 text-[#00e5ff]" />
-            <h4 className="text-sm font-semibold text-[#dee1f9]">
-              Automated Safety Engine & Auto-Abort
-            </h4>
-          </div>
-          <p className="text-xs text-[#849396] leading-relaxed mb-4">
-            FailureLab enforces strict server-controlled tripwires to prevent unrecoverable service outages during resilience testing.
-          </p>
-
-          <div className="space-y-3 font-mono text-xs">
-            <div className="flex items-center justify-between p-2.5 rounded-lg bg-[#0B1020] border border-[#1E2942]">
-              <span className="text-[#849396]">Auto-Abort Tripwire:</span>
-              <span className="text-amber-300 font-bold">3 consecutive breaches</span>
-            </div>
-            <div className="flex items-center justify-between p-2.5 rounded-lg bg-[#0B1020] border border-[#1E2942]">
-              <span className="text-[#849396]">Watchdog Enforcement:</span>
-              <span className="text-emerald-400 font-bold">Autonomous Controller Loop</span>
-            </div>
-            <div className="flex items-center justify-between p-2.5 rounded-lg bg-[#0B1020] border border-[#1E2942]">
-              <span className="text-[#849396]">Safety Engine State:</span>
-              <StatusBadge
-                status={checks.safety_engine ? 'healthy' : 'degraded'}
-                label={checks.safety_engine ? 'ACTIVE' : 'DEGRADED'}
-              />
-            </div>
-          </div>
-        </Card>
-
-        {/* Experiment Bounds */}
-        <Card hover={true}>
-          <div className="flex items-center gap-2 mb-3">
-            <Sliders className="h-5 w-5 text-[#00e5ff]" />
-            <h4 className="text-sm font-semibold text-[#dee1f9]">
-              Allowlisted Catalog Limits
-            </h4>
-          </div>
-          <p className="text-xs text-[#849396] leading-relaxed mb-4">
-            Fault injection parameters are bound by the controller catalog allowlist. SLO thresholds are configured per experiment.
-          </p>
-
-          <div className="space-y-3 font-mono text-xs">
-            <div className="flex items-center justify-between p-2.5 rounded-lg bg-[#0B1020] border border-[#1E2942]">
-              <span className="text-[#849396]">Duration Limits:</span>
-              <span className="text-[#dee1f9]">
-                {catalog?.duration_seconds?.minimum ?? 1}s – {catalog?.duration_seconds?.maximum ?? 3600}s
-              </span>
-            </div>
-            <div className="flex items-center justify-between p-2.5 rounded-lg bg-[#0B1020] border border-[#1E2942]">
-              <span className="text-[#849396]">Default Target:</span>
-              <span className="text-[#00e5ff] font-bold">{catalog?.target_service || 'inventory_service'}</span>
-            </div>
-            <div className="flex items-center justify-between p-2.5 rounded-lg bg-[#0B1020] border border-[#1E2942]">
-              <span className="text-[#849396]">Traffic RPS Range:</span>
-              <span className="text-[#dee1f9]">1 – 10 RPS (strict integer)</span>
-            </div>
-          </div>
-        </Card>
-
-        {/* Readiness Probes Output */}
-        <Card className="md:col-span-2" hover={true}>
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Server className="h-5 w-5 text-[#00e5ff]" />
-              <h4 className="text-sm font-semibold text-[#dee1f9]">
-                Control Plane Readiness Probes (/ready)
-              </h4>
-            </div>
-            <span className="text-[11px] font-mono text-[#849396]">
-              Toxiproxy Mode: <strong className="text-[#00e5ff] uppercase">{toxiproxyMode}</strong>
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 pt-2">
-            {Object.entries(checks).map(([probeName, isHealthy]) => (
-              <div
-                key={probeName}
-                className="p-3 rounded-lg bg-[#0B1020] border border-[#1E2942] flex flex-col justify-between"
-              >
-                <span className="text-[11px] font-mono text-[#849396] uppercase truncate">
-                  {probeName}
-                </span>
-                <div className="mt-2">
-                  <StatusBadge
-                    status={isHealthy ? 'healthy' : 'degraded'}
-                    label={isHealthy ? 'PASS' : 'FAIL'}
-                    dot={true}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-4 pt-3 border-t border-[#1E2942] flex items-center gap-2 text-xs text-[#849396]">
-            <Info className="h-4 w-4 shrink-0 text-[#00e5ff]" />
-            <span>
-              Real mode requires native Toxiproxy server (:8474) running locally. Simulated mode falls back for development testing.
-            </span>
-          </div>
-        </Card>
-      </div>
+export function SettingsView({ controllerReadiness, orderReadiness, catalog, controllerError, orderError, catalogError, controllerLastSuccessAt, orderLastSuccessAt, apiPrefixes }) {
+  const bounds = catalogBounds(catalog);
+  return <section className="space-y-6" aria-labelledby="settings-title">
+    <h2 id="settings-title" className="text-xl font-semibold">Read-only system settings</h2>
+    <p className="text-[#9aa9ac]">Values come from the catalog and readiness responses. This page does not change server configuration.</p>
+    <div className="grid gap-6 lg:grid-cols-2">
+      <Card><h3>Server-controlled auto-abort rule</h3><p className="mt-3">3 consecutive snapshots with error rate or P95 strictly above the experiment ceiling trigger abort and fault cleanup.</p><p className="text-sm text-[#9aa9ac] mt-3">This is the server's fixed policy, not a client setting. Global SLO configuration is not exposed.</p><p className="mt-3">Toxiproxy mode: <strong>{controllerReadiness?.toxiproxy_mode ?? 'unknown'}</strong></p></Card>
+      <Card><h3>Configured API proxy prefixes</h3><dl className="mt-3 space-y-3 text-sm"><dt>Order API</dt><dd><code>{safeProxyPrefix(apiPrefixes?.order)}</code></dd><dt>Controller</dt><dd><code>{safeProxyPrefix(apiPrefixes?.controller)}</code></dd></dl><p className="text-sm text-[#9aa9ac] mt-3">Only relative prefixes are displayed. Upstream URLs and credentials are omitted.</p></Card>
+      <ProbeTable name="Controller" data={controllerReadiness} error={controllerError} lastSuccessAt={controllerLastSuccessAt} />
+      <ProbeTable name="Order API" data={orderReadiness} error={orderError} lastSuccessAt={orderLastSuccessAt} />
     </div>
-  );
+    <Card><h3>Allowlisted catalog limits</h3>
+      {catalogError && <p role="alert">Catalog unavailable. Retained limits may be stale.</p>}
+      {!catalog && !catalogError && <p role="status">Loading catalog…</p>}
+      <p className="text-sm mt-3">Target: {catalog?.target_service ?? 'unknown'}. Duration: {catalog?.duration_seconds ? `${catalog.duration_seconds.minimum}–${catalog.duration_seconds.maximum} seconds` : 'unknown'}.</p>
+      {bounds.length ? <ul className="grid gap-3 sm:grid-cols-2 mt-4">{bounds.map(row => <li key={`${row.fault}-${row.name}`} className="rounded border border-[#1E2942] p-3 text-sm"><strong>{row.fault} / {row.name}</strong><p>{row.limits}</p></li>)}</ul> : <p className="text-[#9aa9ac] mt-3">No catalog limits available.</p>}
+    </Card>
+  </section>;
 }

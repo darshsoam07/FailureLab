@@ -1,14 +1,5 @@
 import React from 'react';
-import {
-  LayoutDashboard,
-  FlaskConical,
-  FileText,
-  Network,
-  Settings,
-  Activity,
-  HelpCircle,
-  BookOpen,
-} from 'lucide-react';
+import { LayoutDashboard, FlaskConical, FileText, Network, Settings, Activity, HelpCircle, BookOpen } from 'lucide-react';
 
 const NAV_CONFIG = [
   { id: 'dashboard', label: 'Dashboard', Icon: LayoutDashboard },
@@ -49,7 +40,7 @@ export function SideNavBar({ activeScreen, onSelectScreen, isRunning = false }) 
                   isRunning ? 'bg-red-400 glow-dot-red animate-pulse' : 'bg-[#10b981] glow-dot-emerald'
                 }`}
               />
-              <span className="text-[#849396] font-mono text-[9px] uppercase tracking-wider">
+              <span className="text-[#9aa9ac] font-mono text-[9px] uppercase tracking-wider">
                 {isRunning ? 'FAULT ACTIVE' : 'COMMAND CENTER'}
               </span>
             </div>
@@ -69,14 +60,14 @@ export function SideNavBar({ activeScreen, onSelectScreen, isRunning = false }) 
                 className={`w-full text-left px-3 py-2.5 flex items-center gap-3 rounded-lg group transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00e5ff] ${
                   isActive
                     ? 'text-[#c3f5ff] bg-[#25293a]/50 border-l-2 border-[#00e5ff] font-semibold shadow-inner'
-                    : 'text-[#849396] hover:text-[#dee1f9] hover:bg-[#161b2b]'
+                    : 'text-[#9aa9ac] hover:text-[#dee1f9] hover:bg-[#161b2b]'
                 }`}
                 title={label}
               >
                 <span className="relative shrink-0">
                   <Icon
                     className={`h-5 w-5 ${
-                      isActive ? 'text-[#00e5ff]' : 'text-[#849396] group-hover:text-[#dee1f9]'
+                      isActive ? 'text-[#00e5ff]' : 'text-[#9aa9ac] group-hover:text-[#dee1f9]'
                     }`}
                     aria-hidden="true"
                   />
@@ -104,24 +95,24 @@ export function SideNavBar({ activeScreen, onSelectScreen, isRunning = false }) 
       {/* Navigation Footer */}
       <div className="px-1.5 flex flex-col gap-1 border-t border-[#1E2942]/40 pt-3">
         <a
-          href="#architecture"
+          href="#architecture" aria-label="Service Map"
           onClick={(e) => {
             e.preventDefault();
             onSelectScreen('topology');
           }}
-          className="text-[#849396] hover:text-[#dee1f9] hover:bg-[#161b2b] px-3 py-2 flex items-center gap-2.5 rounded-lg transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00e5ff]"
+          className="text-[#9aa9ac] hover:text-[#dee1f9] hover:bg-[#161b2b] px-3 py-2 flex items-center gap-2.5 rounded-lg transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00e5ff]"
           title="System Architecture"
         >
           <BookOpen className="h-4 w-4 shrink-0" aria-hidden="true" />
           <span className="hidden lg:inline text-[12px] font-mono">Service Map</span>
         </a>
         <a
-          href="#settings"
+          href="#settings" aria-label="Environment settings"
           onClick={(e) => {
             e.preventDefault();
             onSelectScreen('settings');
           }}
-          className="text-[#849396] hover:text-[#dee1f9] hover:bg-[#161b2b] px-3 py-2 flex items-center gap-2.5 rounded-lg transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00e5ff]"
+          className="text-[#9aa9ac] hover:text-[#dee1f9] hover:bg-[#161b2b] px-3 py-2 flex items-center gap-2.5 rounded-lg transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00e5ff]"
           title="Runtime Settings"
         >
           <HelpCircle className="h-4 w-4 shrink-0" aria-hidden="true" />

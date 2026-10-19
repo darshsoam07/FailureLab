@@ -1,23 +1,9 @@
+import { startVisiblePolling } from '../../lib/visiblePolling.js';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  BrainCircuit,
-  Sparkles,
-  AlertTriangle,
-  CheckCircle2,
-  Download,
-  RefreshCw,
-  ArrowRight,
-  ShieldAlert,
-  Info,
-  X,
-} from 'lucide-react';
+import { BrainCircuit, Sparkles, Download, RefreshCw, ArrowRight, ShieldAlert, Info, X } from 'lucide-react';
 import { ErrorBanner } from '../common/ErrorBanner.jsx';
 import { ExperimentStatusBadge } from '../common/StatusBadge.jsx';
-import {
-  formatConfidence,
-  extractReportMeta,
-  buildExportJson,
-} from '../../lib/reportsLogic.js';
+import { formatConfidence, extractReportMeta, buildExportJson } from '../../lib/reportsLogic.js';
 import { buildProposal, FAULT_LABELS } from '../../api/experiments.js';
 
 /**
@@ -30,80 +16,33 @@ export function PostMortemPanel({
   client,
   onStageProposal,
   onClose,
+  onDetail,
 }) {
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pollSeconds, setPollSeconds] = useState(0);
-  const pollTimerRef = useRef(null);
-
-  // Fetch experiment detail
-  const fetchDetail = useCallback(async (signal) => {
-    if (!experimentId) return;
-    try {
-      const data = await client.getExperiment(experimentId, { signal });
-      setDetail(data);
-      setError(null);
-      return data;
-    } catch (err) {
-      if (!signal?.aborted) {
-        setError(err.message || 'Failed to fetch experiment post-mortem detail');
-      }
-    } finally {
-      if (!signal?.aborted) {
-        setLoading(false);
-      }
-    }
-  }, [client, experimentId]);
-
-  // Initial load on experimentId change
+  const [revision, setRevision] = useState(0);
+  const fetchDetail = () => setRevision(value => value + 1);
   useEffect(() => {
-    setLoading(true);
-    setDetail(null);
-    setError(null);
-    setPollSeconds(0);
-
-    const controller = new AbortController();
-    fetchDetail(controller.signal);
-
-    return () => {
-      controller.abort();
-      if (pollTimerRef.current) clearInterval(pollTimerRef.current);
-    };
-  }, [experimentId, fetchDetail]);
-
-  // Gentle polling only if finished and report is not yet available, capped at 60s
-  useEffect(() => {
-    if (pollTimerRef.current) {
-      clearInterval(pollTimerRef.current);
-      pollTimerRef.current = null;
-    }
-
-    if (!detail) return;
-    const isFinished = ['COMPLETED', 'ABORTED_SLO_BREACH'].includes(detail.status);
-    const hasReport = Boolean(detail.ai_report);
-
-    if (isFinished && !hasReport && pollSeconds < 60) {
-      pollTimerRef.current = setInterval(async () => {
-        setPollSeconds((prev) => {
-          if (prev >= 60) {
-            clearInterval(pollTimerRef.current);
-            return prev;
-          }
-          return prev + 3;
-        });
-
-        const updated = await fetchDetail();
-        if (updated?.ai_report && pollTimerRef.current) {
-          clearInterval(pollTimerRef.current);
-        }
-      }, 3000);
-    }
-
-    return () => {
-      if (pollTimerRef.current) clearInterval(pollTimerRef.current);
-    };
-  }, [detail, pollSeconds, fetchDetail]);
+    setLoading(true); setDetail(null); setError(null); setPollSeconds(0);
+    onDetail?.(null);
+    let attempts = 0;
+    const polling = startVisiblePolling(async signal => {
+      try {
+        const data = await client.getExperiment(experimentId, { signal });
+        if (signal.aborted) return false;
+        setDetail(data); onDetail?.(data); setError(null);
+        attempts += 1;
+        setPollSeconds(Math.min(60, attempts * 3));
+        return !data.ai_report && attempts < 20;
+      } catch (err) {
+        if (!signal.aborted) setError(err.message || 'Failed to fetch experiment detail');
+        return false;
+      } finally { if (!signal.aborted) setLoading(false); }
+    }, 3000);
+    return () => polling.stop();
+  }, [client, experimentId, revision, onDetail]);
 
   // Handle Export JSON
   function handleExportJson() {
@@ -167,7 +106,7 @@ export function PostMortemPanel({
             )}
           </div>
           {detail && (
-            <div className="flex flex-wrap items-center gap-2.5 text-xs font-mono text-[#849396]">
+            <div className="flex flex-wrap items-center gap-2.5 text-xs font-mono text-[#9aa9ac]">
               <span>ID: <strong className="text-white">{detail.id}</strong></span>
               <span>·</span>
               <ExperimentStatusBadge
@@ -197,7 +136,7 @@ export function PostMortemPanel({
               type="button"
               onClick={onClose}
               aria-label="Close post-mortem panel"
-              className="p-1.5 rounded-lg text-[#849396] hover:text-white transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg text-[#9aa9ac] hover:text-white transition-colors cursor-pointer"
             >
               <X className="h-4 w-4" />
             </button>
@@ -222,14 +161,14 @@ export function PostMortemPanel({
 
       {/* Loading state */}
       {loading && !detail && (
-        <div className="py-12 text-center text-xs font-mono text-[#849396]">
+        <div className="py-12 text-center text-xs font-mono text-[#9aa9ac]">
           Loading experiment post-mortem analysis…
         </div>
       )}
 
       {/* State 1: Running experiment */}
       {detail && isRunning && (
-        <div className="p-4 rounded-xl bg-[#0B1020] border border-[#1E2942] text-xs font-mono text-[#849396] space-y-1">
+        <div className="p-4 rounded-xl bg-[#0B1020] border border-[#1E2942] text-xs font-mono text-[#9aa9ac] space-y-1">
           <div className="text-white font-semibold">No report for running experiments</div>
           <p>
             AI post-mortem analysis is synthesized automatically after the experiment finishes and telemetry snapshots are finalized.
@@ -281,7 +220,7 @@ export function PostMortemPanel({
 
           {/* Root Cause Assessment */}
           <div className="space-y-1.5">
-            <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-[#849396]">
+            <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-[#9aa9ac]">
               Root Cause Assessment
             </h4>
             <div className="p-4 rounded-xl bg-[#0B1020] border border-[#1E2942] text-xs font-mono text-[#dee1f9] leading-relaxed">
@@ -292,7 +231,7 @@ export function PostMortemPanel({
           {/* Heuristic Confidence Gauge */}
           <div className="p-4 rounded-xl bg-[#0B1020] border border-[#1E2942] space-y-2">
             <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-[#849396] font-semibold uppercase tracking-wider">
+              <span className="text-[#9aa9ac] font-semibold uppercase tracking-wider">
                 Heuristic Confidence
               </span>
               <span className="text-white font-bold">{confidencePct}%</span>
@@ -303,7 +242,7 @@ export function PostMortemPanel({
               aria-label="Heuristic confidence score"
               className="h-2 w-full rounded-full overflow-hidden bg-[#1E2942] accent-[#00e5ff]"
             />
-            <p className="text-[10px] font-mono text-[#849396]">
+            <p className="text-[10px] font-mono text-[#9aa9ac]">
               Model assessment, not a probability guarantee. Bounded by verified telemetry facts.
             </p>
           </div>
@@ -311,7 +250,7 @@ export function PostMortemPanel({
           {/* Evidence Bullets */}
           {meta?.regularBullets && meta.regularBullets.length > 0 && (
             <div className="space-y-2">
-              <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-[#849396]">
+              <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-[#9aa9ac]">
                 Verified Evidence ({meta.regularBullets.length} points)
               </h4>
               <div className="space-y-1.5">
@@ -330,7 +269,7 @@ export function PostMortemPanel({
 
           {/* Recommended Fix */}
           <div className="space-y-1.5">
-            <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-[#849396]">
+            <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-[#9aa9ac]">
               Recommended Fix
             </h4>
             <pre className="p-4 rounded-xl bg-[#080d1d] border border-[#1E2942] text-xs font-mono text-[#00e5ff] overflow-x-auto whitespace-pre-wrap leading-relaxed">
@@ -358,7 +297,7 @@ export function PostMortemPanel({
               </p>
 
               {report.next_experiment_proposal.suggested_parameters && (
-                <div className="p-2.5 rounded-lg bg-[#0B1020] border border-[#1E2942] text-[11px] font-mono text-[#849396]">
+                <div className="p-2.5 rounded-lg bg-[#0B1020] border border-[#1E2942] text-[11px] font-mono text-[#9aa9ac]">
                   Suggested: {JSON.stringify(report.next_experiment_proposal.suggested_parameters)}
                 </div>
               )}

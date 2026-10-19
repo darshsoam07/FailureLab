@@ -1,31 +1,9 @@
+import { startVisiblePolling } from '../../lib/visiblePolling.js';
 import React, { useState, useEffect, useMemo } from 'react';
-import {
-  Activity,
-  AlertTriangle,
-  Clock,
-  Shield,
-  Square,
-  Radio,
-  CheckCircle2,
-  XCircle,
-} from 'lucide-react';
-import {
-  ResponsiveContainer,
-  ComposedChart,
-  Area,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  ReferenceLine,
-} from 'recharts';
+import { Activity, AlertTriangle, Clock, Shield, Square, Radio } from 'lucide-react';
+import { ResponsiveContainer, ComposedChart, Area, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine } from 'recharts';
 import { ExperimentStatusBadge } from '../common/StatusBadge.jsx';
-import {
-  mapSnapshotsToTimeline,
-  deriveConsecutiveBreaches,
-  deriveExperimentEventLog,
-} from '../../lib/experimentLogic.js';
+import { mapSnapshotsToTimeline, deriveConsecutiveBreaches, deriveExperimentEventLog } from '../../lib/experimentLogic.js';
 
 /**
  * Custom Tooltip for Timeline Chart.
@@ -38,7 +16,7 @@ function TimelineTooltip({ active, payload, label, p95Ceiling, errorCeilingPct }
 
   return (
     <div className="rounded-lg bg-[#0B1020]/95 border border-[#1E2942] p-3 text-xs font-mono shadow-xl space-y-1">
-      <div className="text-[#849396] border-b border-[#1E2942] pb-1 flex justify-between gap-4">
+      <div className="text-[#9aa9ac] border-b border-[#1E2942] pb-1 flex justify-between gap-4">
         <span>Snapshot #{data.index}</span>
         <span className="text-white">{data.timeFormatted}</span>
       </div>
@@ -54,7 +32,7 @@ function TimelineTooltip({ active, payload, label, p95Ceiling, errorCeilingPct }
           {data.errorRatePct}% {isErrorBreach && '(BREACH)'}
         </span>
       </div>
-      <div className="flex justify-between gap-4 text-[#849396]">
+      <div className="flex justify-between gap-4 text-[#9aa9ac]">
         <span>Requests (total/failed):</span>
         <span className="text-white">{data.totalRequests} / {data.failedRequests}</span>
       </div>
@@ -112,18 +90,18 @@ export function LiveRunCard({
   // Keep a ticking clock while experiment is RUNNING for live elapsed duration & freshness
   useEffect(() => {
     if (experiment?.status !== 'RUNNING') return;
-    const interval = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(interval);
+    const polling = startVisiblePolling(() => setNow(Date.now()), 1000);
+    return () => polling.stop();
   }, [experiment?.status]);
 
   if (!experiment) {
     return (
       <div className="rounded-xl bg-[#121A2F] border border-[#1E2942] p-8 shadow-md text-center">
-        <Activity className="h-10 w-10 text-[#849396] mx-auto mb-3 opacity-60" />
-        <h4 className="text-sm font-bold text-white font-mono uppercase tracking-wider">
+        <Activity className="h-10 w-10 text-[#9aa9ac] mx-auto mb-3 opacity-60" />
+        <h3 className="text-sm font-bold text-white font-mono uppercase tracking-wider">
           No Experiment Executed Yet
-        </h4>
-        <p className="text-xs text-[#849396] mt-1 max-w-sm mx-auto">
+        </h3>
+        <p className="text-xs text-[#9aa9ac] mt-1 max-w-sm mx-auto">
           Configure and launch a fault from the launcher to view live telemetry, watchdog tripwires, and event logs.
         </p>
       </div>
@@ -232,7 +210,7 @@ export function LiveRunCard({
               abortReason={experiment.abort_reason}
             />
           </div>
-          <div className="flex flex-wrap items-center gap-3 text-xs font-mono text-[#849396]">
+          <div className="flex flex-wrap items-center gap-3 text-xs font-mono text-[#9aa9ac]">
             <span>
               ID: <span className="text-[#00e5ff] font-semibold">{experiment.id}</span>
             </span>
@@ -242,7 +220,7 @@ export function LiveRunCard({
               <>
                 <span>·</span>
                 <span className="text-white flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5 text-[#849396]" />
+                  <Clock className="h-3.5 w-3.5 text-[#9aa9ac]" />
                   {durationLabel}
                 </span>
               </>
@@ -258,8 +236,8 @@ export function LiveRunCard({
             disabled={!isRunning}
             className={`px-3.5 py-2 rounded-lg text-xs font-bold font-mono uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer disabled:cursor-not-allowed ${
               isRunning
-                ? 'bg-red-600 hover:bg-red-500 text-white shadow-lg glow-red'
-                : 'bg-[#1E2942] text-[#849396] border border-[#22304D] opacity-60'
+                ? 'bg-[#b91c1c] hover:bg-[#991b1b] text-white shadow-lg glow-red'
+                : 'bg-[#1E2942] text-[#9aa9ac] border border-[#22304D] opacity-60'
             }`}
           >
             <Square className="h-3.5 w-3.5 fill-current" />
@@ -286,7 +264,7 @@ export function LiveRunCard({
         {/* Watchdog Status */}
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono uppercase text-[#849396] tracking-wider flex items-center gap-1">
+            <span className="text-[10px] font-mono uppercase text-[#9aa9ac] tracking-wider flex items-center gap-1">
               <Shield className="h-3.5 w-3.5 text-amber-400" />
               Watchdog Tripwire (3 Breaches)
             </span>
@@ -312,12 +290,12 @@ export function LiveRunCard({
                 );
               })}
             </div>
-            <span className="text-[10px] font-mono text-[#849396] truncate">
+            <span className="text-[10px] font-mono text-[#9aa9ac] truncate">
               {isBreaching ? 'SLO breach streak active' : 'Guardrails normal'}
             </span>
           </div>
 
-          <p className="text-[10px] font-mono text-[#849396]/80 pt-0.5">
+          <p className="text-[10px] font-mono text-[#9aa9ac] pt-0.5">
             derived from snapshots; the server remains the authority for the abort decision
           </p>
         </div>
@@ -325,11 +303,11 @@ export function LiveRunCard({
         {/* Snapshot Freshness */}
         <div className="space-y-1 sm:border-l sm:border-[#1E2942] sm:pl-3">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono uppercase text-[#849396] tracking-wider flex items-center gap-1">
-              <Radio className={`h-3.5 w-3.5 ${isRunning ? 'text-[#00e5ff] animate-pulse' : 'text-[#849396]'}`} />
+            <span className="text-[10px] font-mono uppercase text-[#9aa9ac] tracking-wider flex items-center gap-1">
+              <Radio className={`h-3.5 w-3.5 ${isRunning ? 'text-[#00e5ff] animate-pulse' : 'text-[#9aa9ac]'}`} />
               Snapshot Freshness
             </span>
-            <span className="text-xs font-mono text-[#849396]">
+            <span className="text-xs font-mono text-[#9aa9ac]">
               {snapshots.length} recorded
             </span>
           </div>
@@ -349,16 +327,16 @@ export function LiveRunCard({
                   </span>
                 )
               ) : (
-                <span className="text-[#849396]">Waiting for initial watchdog snapshot…</span>
+                <span className="text-[#9aa9ac]">Waiting for initial watchdog snapshot…</span>
               )
             ) : (
-              <span className="text-[#849396]">
+              <span className="text-[#9aa9ac]">
                 Experiment finished · {snapshots.length} snapshots archived
               </span>
             )}
           </div>
 
-          <p className="text-[10px] font-mono text-[#849396]/80 pt-0.5">
+          <p className="text-[10px] font-mono text-[#9aa9ac] pt-0.5">
             The controller aborts automatically after 3 consecutive SLO breaches
           </p>
         </div>
@@ -394,14 +372,14 @@ export function LiveRunCard({
                 <span className="text-xs font-mono text-[#00e5ff]">
                   Waiting for first telemetry snapshot from controller watchdog…
                 </span>
-                <span className="text-[11px] font-mono text-[#849396] mt-1">
+                <span className="text-[11px] font-mono text-[#9aa9ac] mt-1">
                   Snapshots are evaluated every 2 seconds
                 </span>
               </>
             ) : (
               <>
-                <Activity className="h-8 w-8 text-[#849396] mb-2 opacity-50" />
-                <span className="text-xs font-mono text-[#849396]">
+                <Activity className="h-8 w-8 text-[#9aa9ac] mb-2 opacity-50" />
+                <span className="text-xs font-mono text-[#9aa9ac]">
                   No snapshots captured for this experiment
                 </span>
               </>
@@ -409,9 +387,10 @@ export function LiveRunCard({
           </div>
         ) : (
           <div className="rounded-xl bg-[#0B1020] border border-[#1E2942] p-3 pt-4">
-            <div className="h-56 w-full">
+            <div className="h-56 w-full" role="region" aria-label="Experiment latency and error-rate timeline">
+              <p className="sr-only">{timelineData.length} recorded snapshots; P95 latency in milliseconds and error rate in percent. Consecutive breaches: {consecutiveBreaches} of 3. Exact snapshot values appear in the event log below.</p>
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart
+                <ComposedChart accessibilityLayer
                   data={timelineData}
                   margin={{ top: 12, right: 12, left: -16, bottom: 0 }}
                 >
@@ -424,14 +403,14 @@ export function LiveRunCard({
                   <CartesianGrid stroke="#1E2942" strokeDasharray="3 3" vertical={false} />
                   <XAxis
                     dataKey="timeFormatted"
-                    stroke="#849396"
-                    tick={{ fill: '#849396', fontSize: 10 }}
+                    stroke="#9aa9ac"
+                    tick={{ fill: '#9aa9ac', fontSize: 10 }}
                     tickLine={false}
                   />
                   <YAxis
                     yAxisId="latency"
-                    stroke="#849396"
-                    tick={{ fill: '#849396', fontSize: 10 }}
+                    stroke="#9aa9ac"
+                    tick={{ fill: '#9aa9ac', fontSize: 10 }}
                     domain={[0, Math.ceil(maxP95)]}
                     tickLine={false}
                     unit="ms"
@@ -495,7 +474,7 @@ export function LiveRunCard({
                     />
                   )}
 
-                  <Area
+                  <Area isAnimationActive={false}
                     yAxisId="latency"
                     type="monotone"
                     dataKey="p95"
@@ -505,7 +484,7 @@ export function LiveRunCard({
                     fill="url(#p95Grad)"
                     dot={<BreachDot />}
                   />
-                  <Line
+                  <Line isAnimationActive={false}
                     yAxisId="error"
                     type="monotone"
                     dataKey="errorRatePct"
@@ -526,7 +505,7 @@ export function LiveRunCard({
           <span className="font-bold text-white uppercase tracking-wider">
             Derived Experiment Event Log
           </span>
-          <span className="text-[10px] text-[#849396]">
+          <span className="text-[10px] text-[#9aa9ac]">
             {eventLog.length} events · Newest first
           </span>
         </div>
@@ -537,7 +516,7 @@ export function LiveRunCard({
           className="max-h-52 overflow-y-auto space-y-1.5 p-3 rounded-xl bg-[#080d1d] border border-[#1E2942] font-mono text-xs divide-y divide-[#1E2942]/40"
         >
           {eventLog.length === 0 ? (
-            <p className="text-[#849396] text-center py-4">No events logged yet</p>
+            <p className="text-[#9aa9ac] text-center py-4">No events logged yet</p>
           ) : (
             eventLog.map(evt => {
               const timeStr = new Date(evt.timestamp).toTimeString().slice(0, 8);
@@ -551,7 +530,7 @@ export function LiveRunCard({
                     isBreach ? 'text-red-300' : isSuccess ? 'text-emerald-300' : 'text-[#dee1f9]'
                   }`}
                 >
-                  <span className="text-[#849396] shrink-0">{timeStr}</span>
+                  <span className="text-[#9aa9ac] shrink-0">{timeStr}</span>
                   <span
                     className={`px-1.5 py-0.2 rounded text-[10px] uppercase font-bold shrink-0 ${
                       isBreach

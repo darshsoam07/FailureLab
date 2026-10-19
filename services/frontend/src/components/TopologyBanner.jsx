@@ -97,7 +97,7 @@ export default function TopologyBanner({
           <h3 className="text-[16px] md:text-[17px] font-semibold text-[#dee1f9]">
             System Topology Pipeline
           </h3>
-          <span className="text-[11px] font-mono text-[#849396] ml-1">
+          <span className="text-[11px] font-mono text-[#9aa9ac] ml-1">
             end-to-end order flow
           </span>
         </div>
@@ -109,7 +109,7 @@ export default function TopologyBanner({
                 ? 'text-amber-400'
                 : running
                 ? 'text-red-400 font-bold uppercase animate-pulse'
-                : 'text-[#849396]'
+                : 'text-[#9aa9ac]'
             }`}
           >
             {stale ? 'PROBE SIGNALS STALE' : running ? 'CHAOS INJECTION ACTIVE' : 'STEADY STATE'}
@@ -127,8 +127,8 @@ export default function TopologyBanner({
         </div>
       </div>
 
-      <div className="overflow-x-auto pb-1">
-        <ol className="flex min-w-[740px] items-center gap-2.5">
+      <div className="pb-1">
+        <ol className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-2.5">
           {nodes.map(({ id, name, detail, Icon, fault, status }, index) => {
             const isToxiproxyActive = fault && running;
 
@@ -146,7 +146,7 @@ export default function TopologyBanner({
                 >
                   {/* Status Badge in Corner */}
                   <div className="w-full flex items-center justify-between">
-                    <span className="text-[9px] font-mono text-[#849396] uppercase">
+                    <span className="text-[9px] font-mono text-[#9aa9ac] uppercase">
                       0{index + 1}
                     </span>
                     <StatusBadge
@@ -175,7 +175,7 @@ export default function TopologyBanner({
                   {/* Node detail / fault label */}
                   <span
                     className={`text-[10px] font-mono truncate max-w-[150px] ${
-                      isToxiproxyActive ? 'text-amber-300 font-bold' : 'text-[#849396]'
+                      isToxiproxyActive ? 'text-amber-300 font-bold' : 'text-[#9aa9ac]'
                     }`}
                   >
                     {detail}
@@ -186,7 +186,7 @@ export default function TopologyBanner({
                   <ArrowRight
                     size={14}
                     aria-hidden="true"
-                    className="shrink-0 text-[#1E2942]"
+                    className="hidden xl:block shrink-0 text-[#1E2942]"
                   />
                 )}
               </li>
@@ -203,7 +203,7 @@ export default function TopologyBanner({
               Active Experiment: <strong className="text-white">{experiment.name}</strong> · {faultLabel(experiment)}
             </span>
           </div>
-          <span className="text-[#849396] text-[11px] hidden sm:inline">
+          <span className="text-[#9aa9ac] text-[11px] hidden sm:inline">
             Injected via Toxiproxy proxy client
           </span>
         </div>

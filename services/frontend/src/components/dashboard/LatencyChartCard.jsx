@@ -1,15 +1,5 @@
 import React, { useMemo } from 'react';
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ReferenceLine,
-  ReferenceArea,
-} from 'recharts';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ReferenceArea } from 'recharts';
 import { Activity, Clock } from 'lucide-react';
 import { deriveBreachZone } from '../../lib/metricsBuffer.js';
 
@@ -84,7 +74,7 @@ export function LatencyChartCard({
       <div className="sr-only" aria-live="polite">
         Current P95 latency is {currentP95 !== null ? `${currentP95}ms` : 'unknown'}.
         {sloThreshold !== null ? ` Active SLO ceiling is ${sloThreshold}ms.` : ' SLO is not armed.'}
-        {breachZone.isBreached ? ' Above SLO ceiling (dashboard view).' : ' Operating within normal limits.'}
+        {currentP95 === null || isStale ? ' Current SLO assessment unavailable.' : breachZone.isBreached ? ' Above SLO ceiling (dashboard view).' : sloThreshold === null ? ' No experiment SLO is armed.' : ' Latest sample is below the P95 ceiling.'}
         P50 latency is not available from the Order API.
       </div>
 
@@ -96,7 +86,7 @@ export function LatencyChartCard({
             <h3 className="text-[16px] md:text-[17px] font-semibold text-[#dee1f9]">
               Latency over time
             </h3>
-            <span className="text-[11px] text-[#849396] font-mono ml-1">
+            <span className="text-[11px] text-[#9aa9ac] font-mono ml-1">
               rolling 90 samples (~3m)
             </span>
           </div>
@@ -119,7 +109,7 @@ export function LatencyChartCard({
               </div>
             )}
 
-            <div className="flex items-center gap-1 text-[#849396] text-[10px]">
+            <div className="flex items-center gap-1 text-[#9aa9ac] text-[10px]">
               <span className="italic">P50 unavailable</span>
             </div>
           </div>
@@ -144,15 +134,15 @@ export function LatencyChartCard({
                   dataKey="timestamp"
                   tickFormatter={formatTime}
                   minTickGap={60}
-                  stroke="#849396"
-                  tick={{ fill: '#849396', fontSize: 10, fontFamily: 'JetBrains Mono' }}
+                  stroke="#9aa9ac"
+                  tick={{ fill: '#9aa9ac', fontSize: 10, fontFamily: 'JetBrains Mono' }}
                   axisLine={false}
                   tickLine={false}
                 />
 
                 <YAxis
-                  stroke="#849396"
-                  tick={{ fill: '#849396', fontSize: 10, fontFamily: 'JetBrains Mono' }}
+                  stroke="#9aa9ac"
+                  tick={{ fill: '#9aa9ac', fontSize: 10, fontFamily: 'JetBrains Mono' }}
                   axisLine={false}
                   tickLine={false}
                   domain={[0, 'auto']}
@@ -240,7 +230,7 @@ export function LatencyChartCard({
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex h-full items-center justify-center text-xs font-mono text-[#849396]">
+            <div className="flex h-full items-center justify-center text-xs font-mono text-[#9aa9ac]">
               Awaiting telemetry samples from Order API…
             </div>
           )}
@@ -248,7 +238,7 @@ export function LatencyChartCard({
       </div>
 
       {/* Footer freshness indicator */}
-      <div className="pt-2 border-t border-[#1E2942] flex items-center justify-between font-mono text-[10px] text-[#849396]">
+      <div className="pt-2 border-t border-[#1E2942] flex items-center justify-between font-mono text-[10px] text-[#9aa9ac]">
         <div className="flex items-center gap-2">
           <Clock className="h-3.5 w-3.5 text-[#00e5ff]" aria-hidden="true" />
           {isStale ? (

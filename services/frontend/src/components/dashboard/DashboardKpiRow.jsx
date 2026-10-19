@@ -41,7 +41,7 @@ export function DashboardKpiRow({ metrics, experiment, buffer }) {
 
   const p95Subtitle = isRunning && sloMaxP95 !== null
     ? `SLO ceiling ${sloMaxP95}ms`
-    : 'since page load';
+    : 'last 60s (server window)';
 
   const p95Badge = !hasMetrics
     ? 'UNKNOWN'
@@ -73,7 +73,7 @@ export function DashboardKpiRow({ metrics, experiment, buffer }) {
 
   const errorSubtitle = isRunning && sloMaxError !== null
     ? `SLO ceiling ${formatPercent(sloMaxError, 1)}`
-    : 'since page load';
+    : 'last 60s (server window)';
 
   const errorBadge = !hasMetrics
     ? 'UNKNOWN'

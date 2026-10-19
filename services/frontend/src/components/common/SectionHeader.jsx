@@ -23,13 +23,13 @@ export function SectionHeader({
 
   return (
     <div className={`flex flex-wrap items-center justify-between gap-2 ${borderClass} ${className}`}>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {icon && <span className="text-[#00e5ff] shrink-0">{icon}</span>}
-        <h3 className="text-[17px] font-semibold text-[#dee1f9] tracking-tight">
+        <h2 className="text-[17px] font-semibold text-[#dee1f9] tracking-tight">
           {title}
-        </h3>
+        </h2>
         {subtitle && (
-          <span className="text-[12px] text-[#849396] font-mono ml-1">
+          <span className="text-[12px] text-[#9aa9ac] font-mono ml-1">
             {subtitle}
           </span>
         )}

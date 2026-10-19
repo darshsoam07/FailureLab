@@ -1,18 +1,6 @@
 import React from 'react';
-import {
-  Server,
-  Database,
-  Network,
-  Cpu,
-  Flame,
-  Zap,
-  ChevronRight,
-  HelpCircle,
-} from 'lucide-react';
-import {
-  TOPOLOGY_NODES,
-  groupNodesByLayer,
-} from '../../lib/topologyGraph.js';
+import { Server, Database, Network, Cpu, Flame, Zap, ChevronRight } from 'lucide-react';
+import { TOPOLOGY_NODES, groupNodesByLayer } from '../../lib/topologyGraph.js';
 
 function getNodeIcon(id) {
   switch (id) {
@@ -48,7 +36,7 @@ function getStatusBadgeClass(status) {
       return 'bg-rose-950/60 text-rose-300 border-rose-500/40';
     case 'unknown':
     default:
-      return 'bg-slate-900 text-[#849396] border-slate-700';
+      return 'bg-slate-900 text-[#9aa9ac] border-slate-700';
   }
 }
 
@@ -85,10 +73,10 @@ export function TopologyLayerList({
           {/* Layer Header */}
           <div className="flex items-center justify-between pb-1 border-b border-[#1E2942]/60">
             <div>
-              <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-white">
+              <h3 className="text-xs font-bold font-mono uppercase tracking-wider text-white">
                 {layerName} Layer ({nodes.length})
-              </h4>
-              <p className="text-[11px] font-mono text-[#849396]">
+              </h3>
+              <p className="text-[11px] font-mono text-[#9aa9ac]">
                 {layerDescriptions[layerName] || ''}
               </p>
             </div>
@@ -134,12 +122,12 @@ export function TopologyLayerList({
                         <span className="text-xs font-bold text-white tracking-tight truncate">
                           {node.name}
                         </span>
-                        <span className="text-[10px] font-mono text-[#849396]">
+                        <span className="text-[10px] font-mono text-[#9aa9ac]">
                           :{node.ports.join(', :')}
                         </span>
                       </div>
 
-                      <div className="text-[11px] font-mono text-[#849396] truncate">
+                      <div className="text-[11px] font-mono text-[#9aa9ac] truncate">
                         {node.role}
                       </div>
 
@@ -163,7 +151,7 @@ export function TopologyLayerList({
                     >
                       {node.status}
                     </span>
-                    <ChevronRight className="h-4 w-4 text-[#849396]" />
+                    <ChevronRight className="h-4 w-4 text-[#9aa9ac]" />
                   </div>
                 </button>
               );

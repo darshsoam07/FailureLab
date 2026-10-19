@@ -28,9 +28,9 @@ export function ErrorBanner({
       </div>
       <div className="flex-1 min-w-0">
         {title && (
-          <h4 className="text-xs font-bold text-red-300 font-mono uppercase tracking-wider">
+          <p className="text-xs font-bold text-red-300 font-mono uppercase tracking-wider">
             {title}
-          </h4>
+          </p>
         )}
         <div className="text-xs text-red-200 mt-0.5 leading-relaxed break-words font-mono">
           {message}

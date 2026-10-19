@@ -1,27 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Clock,
-  TimerOff,
-  AlertTriangle,
-  WifiOff,
-  Play,
-  Shield,
-  Sparkles,
-  Info,
-  Check,
-} from 'lucide-react';
-import {
-  buildExperiment,
-  buildProposal,
-  DEFAULT_PARAMETERS,
-  FAULT_LABELS,
-  validateParameters,
-} from '../../api/experiments.js';
-import {
-  generatePreviewSentence,
-  percentToFraction,
-  fractionToPercent,
-} from '../../lib/experimentLogic.js';
+import { Clock, TimerOff, AlertTriangle, WifiOff, Play, Shield, Sparkles, Info, Check } from 'lucide-react';
+import { buildExperiment, buildProposal, DEFAULT_PARAMETERS, FAULT_LABELS } from '../../api/experiments.js';
+import { generatePreviewSentence, percentToFraction, fractionToPercent } from '../../lib/experimentLogic.js';
 
 const FAULT_ICONS = {
   LATENCY: Clock,
@@ -202,11 +182,11 @@ export function ExperimentLauncherCard({
           <h3 className="text-[17px] font-bold text-white tracking-tight">
             Configure Chaos Experiment
           </h3>
-          <p className="text-xs text-[#849396] mt-0.5">
+          <p className="text-xs text-[#9aa9ac] mt-0.5">
             Target service: <span className="font-mono text-[#00e5ff] font-semibold">{targetService}</span> · Governed by catalog allowlist
           </p>
         </div>
-        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#1E2942] text-[#849396] border border-[#1E2942]">
+        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#1E2942] text-[#9aa9ac] border border-[#1E2942]">
           4 Catalog Suites
         </span>
       </div>
@@ -278,7 +258,7 @@ export function ExperimentLauncherCard({
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Experiment Name */}
         <div>
-          <label htmlFor="exp-name" className="block text-xs font-semibold text-[#849396] uppercase tracking-wider mb-1.5">
+          <label htmlFor="exp-name" className="block text-xs font-semibold text-[#9aa9ac] uppercase tracking-wider mb-1.5">
             Experiment Name
           </label>
           <input
@@ -296,7 +276,7 @@ export function ExperimentLauncherCard({
 
         {/* Fault Selection Cards (Radio Group) */}
         <div>
-          <label className="block text-xs font-semibold text-[#849396] uppercase tracking-wider mb-2">
+          <label className="block text-xs font-semibold text-[#9aa9ac] uppercase tracking-wider mb-2">
             Select Allowlisted Fault
           </label>
           <div
@@ -323,7 +303,7 @@ export function ExperimentLauncherCard({
                 >
                   <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2">
-                      <Icon className={`h-4 w-4 ${isSelected ? 'text-[#00e5ff]' : 'text-[#849396]'}`} />
+                      <Icon className={`h-4 w-4 ${isSelected ? 'text-[#00e5ff]' : 'text-[#9aa9ac]'}`} />
                       <span className="text-xs font-bold text-white font-mono">
                         {FAULT_LABELS[fault_type]}
                       </span>
@@ -332,7 +312,7 @@ export function ExperimentLauncherCard({
                       <span className="h-2 w-2 rounded-full bg-[#00e5ff] glow-dot-cyan" />
                     )}
                   </div>
-                  <p className="text-[11px] text-[#849396] leading-relaxed">
+                  <p className="text-[11px] text-[#9aa9ac] leading-relaxed">
                     {FAULT_DESCRIPTIONS[fault_type] || 'Inject fault into target service proxy'}
                   </p>
                 </button>
@@ -355,7 +335,7 @@ export function ExperimentLauncherCard({
               if (rule.enum) {
                 return (
                   <div key={key} className="space-y-1.5">
-                    <label htmlFor={`param-${key}`} className="block text-[11px] font-mono text-[#849396]">
+                    <label htmlFor={`param-${key}`} className="block text-[11px] font-mono text-[#9aa9ac]">
                       {label}
                     </label>
                     <select
@@ -382,7 +362,7 @@ export function ExperimentLauncherCard({
               return (
                 <div key={key} className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label htmlFor={`param-${key}`} className="text-[11px] font-mono text-[#849396]">
+                    <label htmlFor={`param-${key}`} className="text-[11px] font-mono text-[#9aa9ac]">
                       {label}
                     </label>
                     <input
@@ -408,7 +388,7 @@ export function ExperimentLauncherCard({
                     onChange={e => handleParamChange(key, Number(e.target.value))}
                     className="w-full h-1.5 bg-[#1E2942] rounded appearance-none cursor-pointer accent-[#00e5ff] disabled:opacity-50"
                   />
-                  <div className="flex justify-between text-[10px] font-mono text-[#849396]">
+                  <div className="flex justify-between text-[10px] font-mono text-[#9aa9ac]">
                     <span>{min}</span>
                     <span>{max} max</span>
                   </div>
@@ -419,7 +399,7 @@ export function ExperimentLauncherCard({
             {/* Duration Slider + Number Input */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label htmlFor="duration-input" className="text-[11px] font-mono text-[#849396]">
+                <label htmlFor="duration-input" className="text-[11px] font-mono text-[#9aa9ac]">
                   DURATION (SECONDS)
                 </label>
                 <input
@@ -445,7 +425,7 @@ export function ExperimentLauncherCard({
                 onChange={e => setDuration(Number(e.target.value))}
                 className="w-full h-1.5 bg-[#1E2942] rounded appearance-none cursor-pointer accent-[#00e5ff] disabled:opacity-50"
               />
-              <div className="flex justify-between text-[10px] font-mono text-[#849396]">
+              <div className="flex justify-between text-[10px] font-mono text-[#9aa9ac]">
                 <span>{minDuration}s</span>
                 <span>{Math.min(300, maxDuration)}s</span>
               </div>
@@ -459,14 +439,14 @@ export function ExperimentLauncherCard({
             <span className="text-xs font-bold font-mono text-amber-300 uppercase tracking-wider">
               Safety Guardrails (SLO Tripwires)
             </span>
-            <span className="text-[10px] font-mono text-[#849396]">
+            <span className="text-[10px] font-mono text-[#9aa9ac]">
               Server Watchdog Enforced
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="slo-p95" className="block text-[11px] font-mono text-[#849396] mb-1">
+              <label htmlFor="slo-p95" className="block text-[11px] font-mono text-[#9aa9ac] mb-1">
                 MAXIMUM P95 LATENCY (MS)
               </label>
               <input
@@ -483,7 +463,7 @@ export function ExperimentLauncherCard({
             </div>
 
             <div>
-              <label htmlFor="slo-error" className="block text-[11px] font-mono text-[#849396] mb-1">
+              <label htmlFor="slo-error" className="block text-[11px] font-mono text-[#9aa9ac] mb-1">
                 MAXIMUM ERROR RATE (%)
               </label>
               <input
@@ -523,19 +503,19 @@ export function ExperimentLauncherCard({
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-mono">
             <div className="p-2.5 rounded-lg bg-[#0B1020] border border-[#1E2942]/60">
-              <span className="text-[10px] text-[#849396] block uppercase">Target Proxy</span>
+              <span className="text-[10px] text-[#9aa9ac] block uppercase">Target Proxy</span>
               <span className="text-white font-semibold truncate block mt-0.5">{targetService}</span>
             </div>
             <div className="p-2.5 rounded-lg bg-[#0B1020] border border-[#1E2942]/60">
-              <span className="text-[10px] text-[#849396] block uppercase">Max Duration</span>
+              <span className="text-[10px] text-[#9aa9ac] block uppercase">Max Duration</span>
               <span className="text-[#00e5ff] font-semibold block mt-0.5">{duration}s</span>
             </div>
             <div className="p-2.5 rounded-lg bg-[#0B1020] border border-[#1E2942]/60">
-              <span className="text-[10px] text-[#849396] block uppercase">P95 Tripwire</span>
+              <span className="text-[10px] text-[#9aa9ac] block uppercase">P95 Tripwire</span>
               <span className="text-amber-300 font-semibold block mt-0.5">{p95Ceiling}ms</span>
             </div>
             <div className="p-2.5 rounded-lg bg-[#0B1020] border border-[#1E2942]/60">
-              <span className="text-[10px] text-[#849396] block uppercase">Error Tripwire</span>
+              <span className="text-[10px] text-[#9aa9ac] block uppercase">Error Tripwire</span>
               <span className="text-amber-300 font-semibold block mt-0.5">{errorPercent}%</span>
             </div>
           </div>
@@ -548,7 +528,7 @@ export function ExperimentLauncherCard({
 
         {/* Plain-Language Preview Sentence */}
         <div className="p-3.5 rounded-lg bg-[#080d1d] border border-[#1E2942]">
-          <div className="text-[10px] font-mono uppercase tracking-wider text-[#849396] mb-1">
+          <div className="text-[10px] font-mono uppercase tracking-wider text-[#9aa9ac] mb-1">
             Plain-Language Execution Preview
           </div>
           <p className="text-xs text-[#00e5ff] font-mono leading-relaxed">

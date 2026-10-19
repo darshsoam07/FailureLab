@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  ArrowLeft,
-  ArrowRight,
-  ArrowUpDown,
-  Filter,
-  Activity,
-  Layers,
-} from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUpDown, Filter, Activity, Layers } from 'lucide-react';
 import { ExperimentStatusBadge } from '../common/StatusBadge.jsx';
 import { EmptyState } from '../common/EmptyState.jsx';
 import { ErrorBanner } from '../common/ErrorBanner.jsx';
@@ -51,7 +44,7 @@ export function ExperimentsHistoryTable({
         <div className="flex flex-wrap items-center gap-2">
           {/* Status Filter */}
           <div className="flex items-center gap-1.5 text-xs font-mono">
-            <Filter className="h-3.5 w-3.5 text-[#849396]" />
+            <Filter className="h-3.5 w-3.5 text-[#9aa9ac]" />
             <select
               aria-label="Filter status of loaded experiments"
               value={statusFilter}
@@ -70,7 +63,7 @@ export function ExperimentsHistoryTable({
           <button
             type="button"
             onClick={onToggleSortDirection}
-            className="flex items-center gap-1 rounded-lg border border-[#1E2942] bg-[#0B1020] px-2.5 py-1 text-xs text-[#849396] hover:text-white font-mono transition-colors cursor-pointer"
+            className="flex items-center gap-1 rounded-lg border border-[#1E2942] bg-[#0B1020] px-2.5 py-1 text-xs text-[#9aa9ac] hover:text-white font-mono transition-colors cursor-pointer"
             title="Toggle sort direction by start time"
           >
             <ArrowUpDown className="h-3.5 w-3.5" />
@@ -79,7 +72,7 @@ export function ExperimentsHistoryTable({
         </div>
       </div>
 
-      <div className="text-[11px] font-mono text-[#849396]">
+      <div className="text-[11px] font-mono text-[#9aa9ac]">
         Status filter applies to loaded page only. Peak P95 is derived from detail snapshots of the selected drill.
       </div>
 
@@ -93,7 +86,7 @@ export function ExperimentsHistoryTable({
 
       {/* Loading Indicator */}
       {loading && !experiments.length && (
-        <div className="py-12 text-center text-xs font-mono text-[#849396]">
+        <div className="py-12 text-center text-xs font-mono text-[#9aa9ac]">
           Loading experiment records…
         </div>
       )}
@@ -101,9 +94,9 @@ export function ExperimentsHistoryTable({
       {/* Empty State */}
       {!loading && experiments.length === 0 && (
         <EmptyState
-          icon={Activity}
+          icon={<Activity aria-hidden="true" />}
           title="No Experiments Found"
-          message="No experiment records match the active filter on this loaded page."
+          description="No experiment records match the active filter on this loaded page."
         />
       )}
 
@@ -111,7 +104,7 @@ export function ExperimentsHistoryTable({
       {experiments.length > 0 && (
         <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-left text-xs font-mono">
-            <thead className="bg-[#0B1020] text-[#849396] border-b border-[#1E2942] uppercase text-[10px] tracking-wider select-none">
+            <thead className="bg-[#0B1020] text-[#9aa9ac] border-b border-[#1E2942] uppercase text-[10px] tracking-wider select-none">
               <tr>
                 <th scope="col" className="py-2.5 px-3">Run ID</th>
                 <th scope="col" className="py-2.5 px-3">Fault Type</th>
@@ -151,10 +144,10 @@ export function ExperimentsHistoryTable({
                     <td className="py-2.5 px-3 text-white">
                       {row.faultLabel}
                     </td>
-                    <td className="py-2.5 px-3 text-[#849396]">
+                    <td className="py-2.5 px-3 text-[#9aa9ac]">
                       {row.startedFormatted}
                     </td>
-                    <td className="py-2.5 px-3 text-[#849396]">
+                    <td className="py-2.5 px-3 text-[#9aa9ac]">
                       {row.durationFormatted}
                     </td>
                     <td className="py-2.5 px-3 text-amber-300 font-semibold" title={isSelected ? 'Peak P95 from telemetry snapshots' : 'Select row to inspect peak P95'}>
@@ -210,7 +203,7 @@ export function ExperimentsHistoryTable({
                   />
                 </div>
                 <div className="text-white font-semibold text-sm mb-1">{row.faultLabel}</div>
-                <div className="grid grid-cols-2 gap-2 text-[11px] text-[#849396] border-t border-[#1E2942]/60 pt-2 mt-2">
+                <div className="grid grid-cols-2 gap-2 text-[11px] text-[#9aa9ac] border-t border-[#1E2942]/60 pt-2 mt-2">
                   <div>
                     <span>Started: </span>
                     <span className="text-[#dee1f9]">{row.startedFormatted}</span>
@@ -231,7 +224,7 @@ export function ExperimentsHistoryTable({
       )}
 
       {/* Pagination Footer */}
-      <div className="flex items-center justify-between pt-3 border-t border-[#1E2942] text-xs font-mono text-[#849396]">
+      <div className="flex items-center justify-between pt-3 border-t border-[#1E2942] text-xs font-mono text-[#9aa9ac]">
         <button
           type="button"
           aria-label="Previous page"

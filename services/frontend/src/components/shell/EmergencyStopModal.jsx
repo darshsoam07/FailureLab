@@ -28,7 +28,9 @@ export function EmergencyStopModal({
       setPending(false);
       setError('');
       // Focus the cancel button first for safety
-      setTimeout(() => cancelButtonRef.current?.focus(), 50);
+      const previous = document.activeElement;
+      cancelButtonRef.current?.focus();
+      return () => previous?.focus();
     }
   }, [isOpen]);
 
@@ -107,7 +109,7 @@ export function EmergencyStopModal({
           }}
           disabled={pending}
           aria-label="Cancel emergency stop dialog"
-          className="absolute top-4 right-4 text-[#849396] hover:text-[#dee1f9] p-1 rounded-lg transition-colors disabled:opacity-40 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00e5ff]"
+          className="absolute top-4 right-4 text-[#9aa9ac] hover:text-[#dee1f9] p-1 rounded-lg transition-colors disabled:opacity-40 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00e5ff]"
         >
           <X className="h-5 w-5" />
         </button>
@@ -121,7 +123,7 @@ export function EmergencyStopModal({
             <h2 id="emergency-dialog-title" className="text-xl font-bold text-white tracking-tight">
               Execute Emergency Circuit Breaker?
             </h2>
-            <p className="text-xs text-[#849396] mt-1 font-mono">
+            <p className="text-xs text-[#9aa9ac] mt-1 font-mono">
               Target: <span className="text-[#00e5ff] font-semibold">{experiment.target_service || 'inventory_service'}</span>
             </p>
           </div>
@@ -147,7 +149,7 @@ export function EmergencyStopModal({
             <span>Immediate Kill-Switch Action:</span>
           </div>
 
-          <ul className="list-disc list-inside space-y-1.5 text-[#849396] pl-1 font-mono text-[11px]">
+          <ul className="list-disc list-inside space-y-1.5 text-[#9aa9ac] pl-1 font-mono text-[11px]">
             <li>
               Active Experiment: <strong className="text-white">{experiment.name}</strong>
             </li>
@@ -173,7 +175,7 @@ export function EmergencyStopModal({
             type="button"
             onClick={onClose}
             disabled={pending}
-            className="px-4 py-2 text-xs font-semibold text-[#849396] hover:text-[#dee1f9] hover:bg-[#1E2942] rounded-lg transition-colors cursor-pointer disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+            className="px-4 py-2 text-xs font-semibold text-[#9aa9ac] hover:text-[#dee1f9] hover:bg-[#1E2942] rounded-lg transition-colors cursor-pointer disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
           >
             Cancel (Keep Running)
           </button>
@@ -182,7 +184,7 @@ export function EmergencyStopModal({
             type="button"
             onClick={handleExecuteStop}
             disabled={pending}
-            className="px-5 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-500 rounded-lg shadow-lg glow-red transition-all active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+            className="px-5 py-2 text-xs font-bold text-white bg-[#b91c1c] hover:bg-[#991b1b] rounded-lg shadow-lg glow-red transition-all active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
           >
             {pending ? (
               <>

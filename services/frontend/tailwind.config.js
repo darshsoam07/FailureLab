@@ -4,11 +4,6 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Legacy aliases mapped to Stitch palette
-        ink: '#0B1020',
-        panel: '#121A2F',
-        edge: '#1E2942',
-        mint: '#00e5ff',
         // Stitch design system tokens
         'surface-lowest': '#080d1d',
         'surface-bg': '#0B1020',
@@ -22,7 +17,7 @@ export default {
         'error-accent': '#ef4444',
         'violet-accent': '#8B5CF6',
         'text-primary': '#dee1f9',
-        'text-secondary': '#849396',
+        'text-secondary': '#9aa9ac',
       },
       fontFamily: {
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],

@@ -1,12 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  Network,
-  Layers,
-  ArrowRight,
-  Flame,
-  LayoutGrid,
-  GitBranch,
-} from 'lucide-react';
+import { Network, Layers, Flame, LayoutGrid, GitBranch } from 'lucide-react';
 import { SectionHeader } from '../common/SectionHeader.jsx';
 import { deriveTopologyHealth } from '../../lib/topologyHealth.js';
 import TopologyBanner from '../TopologyBanner.jsx';
@@ -72,14 +65,14 @@ export function TopologyOverview({
         actions={
           <div className="flex items-center gap-2">
             {/* View Mode Toggle on Desktop */}
-            <div className="hidden md:flex items-center rounded-lg border border-[#1E2942] bg-[#0B1020] p-0.5 text-xs font-mono">
+            <div className="hidden xl:flex items-center rounded-lg border border-[#1E2942] bg-[#0B1020] p-0.5 text-xs font-mono">
               <button
                 type="button"
                 onClick={() => setDesktopViewMode('graph')}
                 className={`flex items-center gap-1 px-2.5 py-1 rounded cursor-pointer transition-colors ${
                   desktopViewMode === 'graph'
                     ? 'bg-[#1E2942] text-white font-semibold'
-                    : 'text-[#849396] hover:text-white'
+                    : 'text-[#9aa9ac] hover:text-white'
                 }`}
               >
                 <GitBranch className="h-3.5 w-3.5" />
@@ -91,7 +84,7 @@ export function TopologyOverview({
                 className={`flex items-center gap-1 px-2.5 py-1 rounded cursor-pointer transition-colors ${
                   desktopViewMode === 'list'
                     ? 'bg-[#1E2942] text-white font-semibold'
-                    : 'text-[#849396] hover:text-white'
+                    : 'text-[#9aa9ac] hover:text-white'
                 }`}
               >
                 <LayoutGrid className="h-3.5 w-3.5" />
@@ -126,7 +119,7 @@ export function TopologyOverview({
         {/* Main Canvas / List Area (7 or 8 columns on large screens when panel open, full width when closed) */}
         <div className={selectedNodeId ? 'lg:col-span-7 xl:col-span-8' : 'lg:col-span-12'}>
           {/* Desktop Graph View */}
-          <div className="hidden md:block">
+          <div className="hidden xl:block">
             {desktopViewMode === 'graph' ? (
               <TopologyGraphView
                 nodeHealthMap={healthMap}
@@ -147,7 +140,7 @@ export function TopologyOverview({
           </div>
 
           {/* Mobile Layer List (Collapses to vertical list grouped by layer, no horizontal scroll) */}
-          <div className="md:hidden">
+          <div className="xl:hidden">
             <TopologyLayerList
               nodeHealthMap={healthMap}
               selectedNodeId={selectedNodeId}
@@ -159,7 +152,7 @@ export function TopologyOverview({
 
         {/* Selected Node Inspection Drawer (Side drawer on desktop, stacked below on mobile) */}
         {selectedNodeId && (
-          <div className="lg:col-span-5 xl:col-span-4 sticky top-4">
+          <div className="lg:col-span-5 xl:col-span-4 lg:sticky lg:top-20">
             <TopologyDetailPanel
               nodeId={selectedNodeId}
               nodeHealthMap={healthMap}

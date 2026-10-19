@@ -34,14 +34,14 @@ export function ExperimentsView({
               Chaos Experiments Studio
             </h2>
           </div>
-          <p className="text-xs text-[#849396] mt-1">
+          <p className="text-xs text-[#9aa9ac] mt-1">
             Automated fault injection suites for validating microservice circuit breakers and graceful degradation.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <span className="px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-[#0B1020] text-[#00e5ff] border border-[#1E2942]">
-            Target: {catalog?.target_service || 'inventory_service'}
+            Target: {catalog?.target_service || 'unknown'}
           </span>
         </div>
       </div>
