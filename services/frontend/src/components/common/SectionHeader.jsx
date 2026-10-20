@@ -1,0 +1,44 @@
+import React from 'react';
+
+/**
+ * Stitch-styled SectionHeader primitive.
+ *
+ * @param {Object} props
+ * @param {string} props.title - Primary title text
+ * @param {React.ReactNode} [props.icon] - Icon element (e.g. Lucide icon)
+ * @param {string|React.ReactNode} [props.subtitle] - Subtitle or context pill
+ * @param {React.ReactNode} [props.actions] - Right-aligned actions, controls, or tabs
+ * @param {boolean} [props.divider=true] - Whether to show bottom border divider
+ * @param {string} [props.className='']
+ */
+export function SectionHeader({
+  title,
+  icon,
+  subtitle,
+  actions,
+  divider = true,
+  className = '',
+}) {
+  const borderClass = divider ? 'pb-3 border-b border-border' : '';
+
+  return (
+    <div className={`flex flex-wrap items-center justify-between gap-2 ${borderClass} ${className}`}>
+      <div className="flex flex-wrap items-center gap-2">
+        {icon && <span className="text-accent-ink shrink-0">{icon}</span>}
+        <h2 className="text-[17px] font-semibold text-foreground tracking-tight">
+          {title}
+        </h2>
+        {subtitle && (
+          <span className="text-[12px] text-muted-foreground font-mono ml-1">
+            {subtitle}
+          </span>
+        )}
+      </div>
+      {actions && (
+        <div className="flex items-center gap-2 shrink-0">
+          {actions}
+        </div>
+      )}
+    </div>
+  );
+}

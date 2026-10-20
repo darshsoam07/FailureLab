@@ -1,9 +1,10 @@
+import { safeProxyPrefix } from '../lib/settings.js';
 export class ApiError extends Error {
   constructor(message, status = 0) { super(message); this.name = 'ApiError'; this.status = status; }
 }
 
 export function createApiClient({ orderApiUrl, controllerApiUrl, fetchImpl = globalThis.fetch, timeoutMs = 8000 }) {
-  async function request(base, path, { signal, method = 'GET', body } = {}) {
+  async function request(base, path, { signal, method = 'GET', body, readiness = false } = {}) {
     if (!base) throw new ApiError('API URL is not configured. Set the corresponding VITE_*_API_URL.');
     const controller = new AbortController();
     const abort = () => controller.abort(signal.reason);
@@ -16,9 +17,9 @@ export function createApiClient({ orderApiUrl, controllerApiUrl, fetchImpl = glo
         ...(body !== undefined && { body: JSON.stringify(body) }),
       });
       const data = response.status === 204 ? null : await response.json().catch(() => {
-        throw new ApiError('The API returned an invalid JSON response.', response.status);
+        throw new ApiError(response.ok ? 'The API returned an invalid JSON response.' : `API unavailable (HTTP ${response.status}).`, response.status);
       });
-      if (!response.ok) {
+      if (!response.ok && !(readiness && response.status === 503 && data?.status === 'not_ready' && data?.checks && typeof data.checks === 'object')) {
         const detail = typeof data?.detail === 'string' ? data.detail : Array.isArray(data?.detail)
           ? data.detail.map(item => `${item.loc?.join('.')}: ${item.msg}`).join('; ') : `Request failed (${response.status})`;
         throw new ApiError(detail, response.status);
@@ -36,6 +37,7 @@ export function createApiClient({ orderApiUrl, controllerApiUrl, fetchImpl = glo
   }
   const detail = (id, options) => request(controllerApiUrl, `/api/experiments/${encodeURIComponent(id)}`, options);
   return {
+    displayPrefixes: { order: safeProxyPrefix(orderApiUrl), controller: safeProxyPrefix(controllerApiUrl) },
     getMetricsSummary: ({ since, windowSeconds, ...options } = {}) => {
       const query = new URLSearchParams();
       if (since) query.set('since', since);
@@ -54,9 +56,9 @@ export function createApiClient({ orderApiUrl, controllerApiUrl, fetchImpl = glo
     getExperiment: detail,
     getAIReport: async (id, options) => (await detail(id, options)).ai_report,
     getOrderHealth: options => request(orderApiUrl, '/health', options),
-    getOrderReadiness: options => request(orderApiUrl, '/ready', options),
+    getOrderReadiness: options => request(orderApiUrl, '/ready', { ...options, readiness: true }),
     getControllerHealth: options => request(controllerApiUrl, '/health', options),
-    getControllerReadiness: options => request(controllerApiUrl, '/ready', options),
+    getControllerReadiness: options => request(controllerApiUrl, '/ready', { ...options, readiness: true }),
   };
 }
 

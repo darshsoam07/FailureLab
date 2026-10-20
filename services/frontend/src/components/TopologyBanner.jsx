@@ -1,48 +1,213 @@
+import React from 'react';
 import { ArrowRight, Boxes, Cpu, Database, Network, Zap } from 'lucide-react';
+import { deriveTopologyHealth } from '../lib/topologyHealth.js';
+import { StatusBadge } from './common/StatusBadge.jsx';
 
 function faultLabel(experiment) {
   const p = experiment?.parameters ?? {};
   switch (experiment?.fault_type) {
-    case 'LATENCY': return `+${p.latency_ms ?? 0}ms latency · ±${p.jitter_ms ?? 0}ms jitter`;
-    case 'TIMEOUT': return `${p.timeout_ms ?? 0}ms timeout${p.timeout_ms === 0 ? ' · indefinite' : ''}`;
-    case 'ERROR_RATE': return p.mode === 'reset_peer' ? 'Connection reset' : `${p.error_rate_percent}% HTTP 503`;
-    case 'BANDWIDTH': return `${p.rate_kbps} KB/s bandwidth cap`;
-    default: return 'Fault injection active';
+    case 'LATENCY':
+      return `+${p.latency_ms ?? 0}ms latency (±${p.jitter_ms ?? 0}ms jitter)`;
+    case 'TIMEOUT':
+      return `${p.timeout_ms ?? 0}ms timeout${p.timeout_ms === 0 ? ' · indefinite drop' : ''}`;
+    case 'ERROR_RATE':
+      return p.mode === 'reset_peer' ? 'TCP connection reset' : `${p.error_rate_percent}% HTTP 503 errors`;
+    case 'BANDWIDTH':
+      return `${p.rate_kbps} KB/s bandwidth bottleneck`;
+    default:
+      return experiment?.fault_type ? `${experiment.fault_type} active` : 'Fault injection active';
   }
 }
 
-export default function TopologyBanner({ experiment = null, stale = false }) {
+/**
+ * Visual System Topology pipeline banner showing request path,
+ * real subsystem health status, fault glow when chaos is active,
+ * and navigation on node click.
+ *
+ * @param {Object} props
+ * @param {Object|null} props.experiment - Running experiment
+ * @param {boolean} [props.stale=false] - Whether data is stale
+ * @param {Object|null} [props.orderReadiness] - Order API readiness probe
+ * @param {Object|null} [props.controllerReadiness] - Controller readiness probe
+ * @param {(screen: string) => void} [props.onNavigate] - Navigation handler to switch to Topology screen
+ */
+export default function TopologyBanner({
+  experiment = null,
+  stale = false,
+  orderReadiness = null,
+  controllerReadiness = null,
+  onNavigate,
+}) {
   const running = experiment?.status === 'RUNNING' && !stale;
+  const healthMap = deriveTopologyHealth({ orderReadiness, controllerReadiness });
+
   const nodes = [
-    { name: 'Order API', detail: 'Accept & persist', Icon: Boxes },
-    { name: 'RabbitMQ', detail: 'Durable delivery', Icon: Network },
-    { name: 'Fulfillment Worker', detail: 'Retry & recover', Icon: Cpu },
-    { name: 'Toxiproxy', detail: 'Fault point', Icon: Zap, fault: true },
-    { name: 'Inventory Service', detail: 'Reserve stock', Icon: Database },
+    {
+      id: 'order_api',
+      name: 'Order API',
+      detail: 'Accept & persist',
+      Icon: Boxes,
+      status: healthMap.order_api.status,
+    },
+    {
+      id: 'rabbitmq',
+      name: 'RabbitMQ',
+      detail: 'Durable delivery',
+      Icon: Network,
+      status: healthMap.rabbitmq.status,
+    },
+    {
+      id: 'fulfillment_worker',
+      name: 'Fulfillment Worker',
+      detail: 'Retry & recover',
+      Icon: Cpu,
+      status: healthMap.fulfillment_worker.status, // always 'unknown'
+    },
+    {
+      id: 'toxiproxy',
+      name: 'Toxiproxy',
+      detail: running ? faultLabel(experiment) : 'Fault injection point',
+      Icon: Zap,
+      fault: true,
+      status: healthMap.toxiproxy.status === 'simulated' ? 'simulated' : running ? 'degraded' : healthMap.toxiproxy.status,
+    },
+    {
+      id: 'inventory',
+      name: 'Inventory Service',
+      detail: 'Reserve stock',
+      Icon: Database,
+      status: healthMap.inventory.status, // always 'unknown'
+    },
   ];
-  return <section aria-label="Service topology" className="rounded-2xl border border-edge bg-panel p-5 sm:p-7">
-    <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-      <h2 className="eyebrow">01 / System topology</h2>
-      <span className={`text-xs ${stale ? 'text-amber-300' : running ? 'text-amber-300' : 'text-slate-400'}`}>
-        {stale ? 'Experiment status unavailable' : running ? 'Experiment in progress' : 'No active experiment'}
-      </span>
-    </div>
-    <div className="overflow-x-auto pb-2">
-      <ol className="flex min-w-[780px] items-center gap-3">
-        {nodes.map(({ name, detail, Icon, fault }, index) => <li key={name} className="flex min-w-0 flex-1 items-center gap-3">
-          <div className={`relative flex min-h-32 flex-1 flex-col items-center justify-center rounded-xl border px-2 py-4 text-center ${fault && running ? 'border-amber-500/60 bg-amber-500/10' : 'border-edge bg-ink/40'}`}>
-            {fault && running && <span aria-hidden="true" className="absolute right-3 top-3 h-2 w-2 rounded-full bg-red-400 motion-safe:animate-pulse" />}
-            <Icon aria-hidden="true" size={23} className={`mb-3 ${fault ? running ? 'text-amber-300 motion-safe:animate-pulse' : 'text-amber-300/70' : 'text-mint'}`} />
-            <span className="text-xs font-semibold text-slate-100">{name}</span>
-            <span className="mt-1 text-[10px] uppercase tracking-wider text-slate-400">{detail}</span>
+
+  function handleNodeClick() {
+    if (onNavigate) {
+      onNavigate('topology');
+    }
+  }
+
+  return (
+    <section
+      aria-label="Service topology pipeline"
+      className="rounded-xl border border-border bg-surface p-4 md:p-5 shadow-md select-none"
+    >
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-border">
+        <div className="flex flex-wrap items-center gap-2">
+          <Network className="h-4 w-4 shrink-0 text-accent-ink" aria-hidden="true" />
+          <h3 className="text-[16px] md:text-[17px] font-semibold text-foreground">
+            System Topology Pipeline
+          </h3>
+          <span className="text-[11px] font-mono text-muted-foreground ml-1">
+            end-to-end order flow
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <span
+            className={`text-xs font-mono font-medium ${
+              stale
+                ? 'text-warning'
+                : running
+                ? 'text-destructive font-bold uppercase animate-pulse'
+                : 'text-muted-foreground'
+            }`}
+          >
+            {stale ? 'PROBE SIGNALS STALE' : running ? 'CHAOS INJECTION ACTIVE' : 'STEADY STATE'}
+          </span>
+
+          {onNavigate && (
+            <button
+              type="button"
+              onClick={handleNodeClick}
+              className="text-xs font-mono text-accent-ink hover:underline cursor-pointer"
+            >
+              View Service Map →
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="pb-1">
+        <ol className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-2.5">
+          {nodes.map(({ id, name, detail, Icon, fault, status }, index) => {
+            const isToxiproxyActive = fault && running;
+
+            return (
+              <li key={id} className="flex min-w-0 flex-1 items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={handleNodeClick}
+                  title={status === 'simulated' ? 'Faults are simulated; results are not from a real proxy' : `Click to view ${name} in Topology`}
+                  className={`relative flex min-h-[110px] flex-1 flex-col items-center justify-between rounded-xl border p-3 text-center transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ${
+                    isToxiproxyActive
+                      ? 'border-warning/80 bg-warning/10 glow-amber'
+                      : 'border-border bg-background hover:border-border'
+                  }`}
+                >
+                  {/* Status Badge in Corner */}
+                  <div className="w-full flex items-center justify-between">
+                    <span className="text-[9px] font-mono text-muted-foreground uppercase">
+                      0{index + 1}
+                    </span>
+                    <StatusBadge
+                      status={status}
+                      label={status.toUpperCase()}
+                      dot={true}
+                    />
+                  </div>
+
+                  {/* Icon & Name */}
+                  <div className="my-1.5 flex flex-col items-center">
+                    <Icon
+                      size={22}
+                      aria-hidden="true"
+                      className={`mb-1 transition-colors ${
+                        isToxiproxyActive
+                          ? 'text-warning motion-safe:animate-pulse'
+                          : 'text-accent-ink group-hover:text-foreground'
+                      }`}
+                    />
+                    <span className="text-xs font-semibold text-foreground group-hover:text-foreground">
+                      {name}
+                    </span>
+                  </div>
+
+                  {/* Node detail / fault label */}
+                  <span
+                    className={`text-[10px] font-mono truncate max-w-[150px] ${
+                      isToxiproxyActive ? 'text-warning font-bold' : 'text-muted-foreground'
+                    }`}
+                  >
+                    {detail}
+                  </span>
+                </button>
+
+                {index < nodes.length - 1 && (
+                  <ArrowRight
+                    size={14}
+                    aria-hidden="true"
+                    className="hidden xl:block shrink-0 text-border"
+                  />
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      </div>
+
+      {running && (
+        <div className="mt-3 p-3 rounded-lg border border-destructive/50 bg-destructive/10 flex items-center justify-between text-xs font-mono text-destructive">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-destructive animate-ping" />
+            <span>
+              Active Experiment: <strong className="text-foreground">{experiment.name}</strong> · {faultLabel(experiment)}
+            </span>
           </div>
-          {index < nodes.length - 1 && <ArrowRight aria-hidden="true" size={16} className="shrink-0 text-slate-600" />}
-        </li>)}
-      </ol>
-    </div>
-    {running && <p className="mt-4 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-2 font-mono text-xs text-amber-200">
-      {experiment.name} / {faultLabel(experiment)}
-      {experiment.fault_type === 'ERROR_RATE' && experiment.parameters?.mode !== 'reset_peer' && ' · injected at Inventory Service'}
-    </p>}
-  </section>;
+          <span className="text-muted-foreground text-[11px] hidden sm:inline">
+            Injected via Toxiproxy proxy client
+          </span>
+        </div>
+      )}
+    </section>
+  );
 }

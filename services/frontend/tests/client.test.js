@@ -48,3 +48,11 @@ test('caller cancellation propagates to fetch', async () => {
   abort.abort();
   await assert.rejects(client.getMetricsSummary({ signal: abort.signal }), { name: 'AbortError' });
 });
+
+
+test('readiness preserves 503 dependency failures, other endpoints still reject 503', async () => {
+  const client = createApiClient({ orderApiUrl: '/order-api', controllerApiUrl: '/controller-api', fetchImpl: async () => new Response(JSON.stringify({ status: 'not_ready', checks: { rabbitmq: false, database: false } }), { status: 503 }) });
+  assert.equal((await client.getControllerReadiness()).checks.rabbitmq, false);
+  assert.equal((await client.getOrderReadiness()).checks.database, false);
+  await assert.rejects(client.getMetricsSummary(), error => error.status === 503);
+});

@@ -3,8 +3,19 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
-      colors: { ink: '#090d14', panel: '#101722', edge: '#253244', mint: '#71e4c2' },
-      fontFamily: { sans: ['Inter', 'Segoe UI', 'sans-serif'], mono: ['Cascadia Code', 'Consolas', 'monospace'] },
+      colors: {
+        ...Object.fromEntries([
+          'background', 'foreground', 'surface', 'surface-elevated', 'surface-dark',
+          'primary', 'primary-foreground', 'secondary', 'accent', 'accent-foreground',
+          'accent-ink', 'border', 'input', 'focus-ring', 'muted', 'muted-foreground',
+          'success', 'warning', 'destructive', 'danger-button', 'on-destructive',
+          'simulated', 'chart-series', 'chart-secondary', 'sidebar', 'sidebar-active',
+        ].map(role => [role, `var(--${role})`])),
+      },
+      fontFamily: {
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+      },
     },
   },
   plugins: [],

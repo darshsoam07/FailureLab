@@ -1,0 +1,6 @@
+{
+  "name": "FailureLab - Chaos Engineering Command Center",
+  "description": "Production-grade resilience testing and chaos engineering command center with real-time telemetry, synthetic traffic injection, and distributed system topology.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
