@@ -20,27 +20,27 @@ const NAV_CONFIG = [
 export function SideNavBar({ activeScreen, onSelectScreen, isRunning = false }) {
   return (
     <aside
-      className="hidden md:flex fixed top-0 left-0 h-screen w-16 lg:w-64 bg-[#080d1d] border-r border-[#1E2942]/60 flex-col justify-between py-3 z-40 select-none transition-all duration-200"
+      className="terminal-panel hidden md:flex fixed top-0 left-0 h-dvh w-16 lg:w-64 bg-sidebar border-r border-border/60 flex-col justify-between py-3 z-40 select-none transition-all duration-200"
       aria-label="Sidebar navigation"
     >
       <div className="flex flex-col gap-3">
         {/* Header / Logo Mark */}
-        <div className="px-3 lg:px-4 flex items-center gap-2.5 h-12 border-b border-[#1E2942]/40 pb-2">
-          <div className="w-8 h-8 rounded-lg bg-[#00e5ff]/10 border border-[#00e5ff]/40 flex items-center justify-center shrink-0 shadow-sm">
-            <Activity className="h-4 w-4 text-[#00e5ff]" aria-hidden="true" />
+        <div className="px-3 lg:px-4 flex items-center gap-2.5 h-12 border-b border-border/40 pb-2">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 border border-accent-ink/40 flex items-center justify-center shrink-0 shadow-sm">
+            <Activity className="h-4 w-4 text-accent-ink" aria-hidden="true" />
           </div>
           <div className="hidden lg:flex flex-col min-w-0">
-            <span className="text-[16px] font-bold text-[#c3f5ff] tracking-tight truncate leading-tight font-sans">
+            <span className="text-[16px] font-bold text-foreground tracking-tight truncate leading-tight font-sans">
               FailureLab
             </span>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span
                 aria-hidden="true"
                 className={`inline-block w-1.5 h-1.5 rounded-full ${
-                  isRunning ? 'bg-red-400 glow-dot-red animate-pulse' : 'bg-[#10b981] glow-dot-emerald'
+                  isRunning ? 'bg-destructive glow-dot-red animate-pulse' : 'bg-success glow-dot-emerald'
                 }`}
               />
-              <span className="text-[#9aa9ac] font-mono text-[9px] uppercase tracking-wider">
+              <span className="text-muted-foreground font-mono text-[9px] uppercase tracking-wider">
                 {isRunning ? 'FAULT ACTIVE' : 'COMMAND CENTER'}
               </span>
             </div>
@@ -57,24 +57,24 @@ export function SideNavBar({ activeScreen, onSelectScreen, isRunning = false }) 
                 type="button"
                 onClick={() => onSelectScreen(id)}
                 aria-current={isActive ? 'page' : undefined}
-                className={`w-full text-left px-3 py-2.5 flex items-center gap-3 rounded-lg group transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00e5ff] ${
+                className={`w-full text-left px-3 py-2.5 flex items-center gap-3 rounded-lg group transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ${
                   isActive
-                    ? 'text-[#c3f5ff] bg-[#25293a]/50 border-l-2 border-[#00e5ff] font-semibold shadow-inner'
-                    : 'text-[#9aa9ac] hover:text-[#dee1f9] hover:bg-[#161b2b]'
+                    ? 'text-primary-foreground bg-sidebar-active border-l-2 border-sidebar-active font-semibold'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-surface'
                 }`}
                 title={label}
               >
                 <span className="relative shrink-0">
                   <Icon
                     className={`h-5 w-5 ${
-                      isActive ? 'text-[#00e5ff]' : 'text-[#9aa9ac] group-hover:text-[#dee1f9]'
+                      isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-foreground'
                     }`}
                     aria-hidden="true"
                   />
                   {id === 'experiments' && isRunning && (
                     <span
                       aria-hidden="true"
-                      className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500 animate-ping"
+                      className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-danger-button animate-ping"
                     />
                   )}
                 </span>
@@ -82,7 +82,7 @@ export function SideNavBar({ activeScreen, onSelectScreen, isRunning = false }) 
                   {label}
                 </span>
                 {id === 'experiments' && isRunning && (
-                  <span className="hidden lg:inline-block ml-auto text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-950/60 text-red-300 border border-red-800/60 font-bold uppercase animate-pulse">
+                  <span className="hidden lg:inline-block ml-auto text-[10px] font-mono px-1.5 py-0.5 rounded bg-destructive/10 text-destructive border border-destructive/60 font-bold uppercase animate-pulse">
                     Live
                   </span>
                 )}
@@ -93,14 +93,14 @@ export function SideNavBar({ activeScreen, onSelectScreen, isRunning = false }) 
       </div>
 
       {/* Navigation Footer */}
-      <div className="px-1.5 flex flex-col gap-1 border-t border-[#1E2942]/40 pt-3">
+      <div className="px-1.5 flex flex-col gap-1 border-t border-border/40 pt-3">
         <a
           href="#architecture" aria-label="Service Map"
           onClick={(e) => {
             e.preventDefault();
             onSelectScreen('topology');
           }}
-          className="text-[#9aa9ac] hover:text-[#dee1f9] hover:bg-[#161b2b] px-3 py-2 flex items-center gap-2.5 rounded-lg transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00e5ff]"
+          className="text-muted-foreground hover:text-foreground hover:bg-surface px-3 py-2 flex items-center gap-2.5 rounded-lg transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
           title="System Architecture"
         >
           <BookOpen className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -112,7 +112,7 @@ export function SideNavBar({ activeScreen, onSelectScreen, isRunning = false }) 
             e.preventDefault();
             onSelectScreen('settings');
           }}
-          className="text-[#9aa9ac] hover:text-[#dee1f9] hover:bg-[#161b2b] px-3 py-2 flex items-center gap-2.5 rounded-lg transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00e5ff]"
+          className="text-muted-foreground hover:text-foreground hover:bg-surface px-3 py-2 flex items-center gap-2.5 rounded-lg transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
           title="Runtime Settings"
         >
           <HelpCircle className="h-4 w-4 shrink-0" aria-hidden="true" />

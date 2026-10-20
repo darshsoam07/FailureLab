@@ -68,7 +68,7 @@ export function LatencyChartCard({
     <div
       role="region"
       aria-label="Latency history chart"
-      className="lg:col-span-8 rounded-xl bg-[#121A2F] border border-[#1E2942] p-4 md:p-5 flex flex-col justify-between shadow-md select-none"
+      className="terminal-panel lg:col-span-8 rounded-lg bg-surface-dark border border-border p-4 md:p-5 flex flex-col justify-between shadow-sm select-none"
     >
       {/* Accessible visually hidden summary for screen readers */}
       <div className="sr-only" aria-live="polite">
@@ -80,13 +80,13 @@ export function LatencyChartCard({
 
       <div>
         {/* Header with Title and Legend */}
-        <div className="flex flex-wrap items-center justify-between gap-y-2 pb-3 border-b border-[#1E2942]">
-          <div className="flex items-center gap-2">
-            <Activity className="h-4 w-4 text-[#00e5ff]" aria-hidden="true" />
-            <h3 className="text-[16px] md:text-[17px] font-semibold text-[#dee1f9]">
+        <div className="flex flex-wrap items-center justify-between gap-y-2 pb-3 border-b border-border">
+          <div className="flex flex-wrap items-center gap-2">
+            <Activity className="h-4 w-4 text-accent-ink" aria-hidden="true" />
+            <h3 className="text-[16px] md:text-[17px] font-semibold text-foreground">
               Latency over time
             </h3>
-            <span className="text-[11px] text-[#9aa9ac] font-mono ml-1">
+            <span className="text-[11px] text-muted-foreground font-mono ml-1">
               rolling 90 samples (~3m)
             </span>
           </div>
@@ -94,22 +94,22 @@ export function LatencyChartCard({
           {/* Legend Items */}
           <div className="flex flex-wrap items-center gap-3 font-mono text-[11px]">
             <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-1 bg-[#00e5ff] rounded-full inline-block" />
-              <span className="text-[#dee1f9] font-medium">
+              <span className="w-2.5 h-1 bg-primary rounded-full inline-block" />
+              <span className="text-foreground font-medium">
                 P95 ({currentP95 !== null ? `${currentP95}ms` : '—'})
               </span>
             </div>
 
             {sloThreshold !== null && (
               <div className="flex items-center gap-1.5">
-                <span className="w-3 h-0.5 border-t border-dashed border-red-400 inline-block" />
-                <span className="text-red-300 font-semibold">
+                <span className="w-3 h-0.5 border-t border-dashed border-destructive inline-block" />
+                <span className="text-destructive font-semibold">
                   SLO {sloThreshold}ms
                 </span>
               </div>
             )}
 
-            <div className="flex items-center gap-1 text-[#9aa9ac] text-[10px]">
+            <div className="flex items-center gap-1 text-muted-foreground text-[10px]">
               <span className="italic">P50 unavailable</span>
             </div>
           </div>
@@ -121,11 +121,11 @@ export function LatencyChartCard({
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={buffer}
-                margin={{ top: 12, right: 12, bottom: 4, left: -10 }}
+                margin={{ top: 12, right: 12, bottom: 4, left: 0 }}
                 accessibilityLayer
               >
                 <CartesianGrid
-                  stroke="#1E2942"
+                  stroke="var(--border)"
                   strokeDasharray="3 3"
                   vertical={false}
                 />
@@ -134,19 +134,19 @@ export function LatencyChartCard({
                   dataKey="timestamp"
                   tickFormatter={formatTime}
                   minTickGap={60}
-                  stroke="#9aa9ac"
-                  tick={{ fill: '#9aa9ac', fontSize: 10, fontFamily: 'JetBrains Mono' }}
+                  stroke="var(--muted-foreground)"
+                  tick={{ fill: 'var(--muted-foreground)', fontSize: 10, fontFamily: 'JetBrains Mono' }}
                   axisLine={false}
                   tickLine={false}
                 />
 
                 <YAxis
-                  stroke="#9aa9ac"
-                  tick={{ fill: '#9aa9ac', fontSize: 10, fontFamily: 'JetBrains Mono' }}
+                  stroke="var(--muted-foreground)"
+                  tick={{ fill: 'var(--muted-foreground)', fontSize: 10, fontFamily: 'JetBrains Mono' }}
                   axisLine={false}
                   tickLine={false}
                   domain={[0, 'auto']}
-                  width={42}
+                  width={54}
                   unit="ms"
                 />
 
@@ -154,15 +154,15 @@ export function LatencyChartCard({
                   labelFormatter={formatTime}
                   formatter={(val) => [`${val} ms`, 'P95 Latency']}
                   contentStyle={{
-                    backgroundColor: '#0B1020',
-                    borderColor: '#1E2942',
+                    backgroundColor: 'var(--background)',
+                    borderColor: 'var(--border)',
                     borderRadius: '8px',
-                    color: '#dee1f9',
+                    color: 'var(--foreground)',
                     fontFamily: 'JetBrains Mono',
                     fontSize: '11px',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                    boxShadow: 'none',
                   }}
-                  itemStyle={{ color: '#00e5ff' }}
+                  itemStyle={{ color: 'var(--accent-ink)' }}
                 />
 
                 {/* Shading area above SLO where P95 exceeds threshold */}
@@ -170,11 +170,12 @@ export function LatencyChartCard({
                   <ReferenceArea
                     y1={breachZone.y1}
                     y2={breachZone.y2}
-                    fill="rgba(239, 68, 68, 0.22)"
+                    fill="var(--destructive)"
+                    fillOpacity={0.15}
                     stroke="none"
                     label={{
                       value: 'BREACH ZONE',
-                      fill: '#f87171',
+                      fill: 'var(--destructive)',
                       fontSize: 10,
                       position: 'insideTopRight',
                       fontFamily: 'JetBrains Mono',
@@ -186,14 +187,14 @@ export function LatencyChartCard({
                 {sloThreshold !== null && (
                   <ReferenceLine
                     y={sloThreshold}
-                    stroke="#ef4444"
+                    stroke="var(--destructive)"
                     strokeDasharray="5 4"
                     strokeWidth={1.5}
                     label={{
                       value: `SLO ${sloThreshold}ms`,
-                      fill: '#f87171',
+                      fill: 'var(--destructive)',
                       fontSize: 10,
-                      position: 'right',
+                      position: 'insideTopRight',
                       fontFamily: 'JetBrains Mono',
                     }}
                   />
@@ -203,12 +204,12 @@ export function LatencyChartCard({
                 {experimentStartTs !== null && (
                   <ReferenceLine
                     x={experimentStartTs}
-                    stroke="#f59e0b"
+                    stroke="var(--warning)"
                     strokeDasharray="4 4"
                     strokeWidth={1.5}
                     label={{
                       value: 'EXPERIMENT START',
-                      fill: '#fbbf24',
+                      fill: 'var(--warning)',
                       fontSize: 9,
                       position: 'insideTopLeft',
                       fontFamily: 'JetBrains Mono',
@@ -220,17 +221,17 @@ export function LatencyChartCard({
                 <Line
                   type="monotone"
                   dataKey="p95"
-                  stroke={breachZone.isBreached ? '#ef4444' : '#00e5ff'}
+                  stroke={breachZone.isBreached ? 'var(--destructive)' : 'var(--accent-ink)'}
                   strokeWidth={2}
                   dot={false}
-                  activeDot={{ r: 5, fill: '#00e5ff', stroke: '#0B1020', strokeWidth: 2 }}
+                  activeDot={{ r: 5, fill: 'var(--accent-ink)', stroke: 'var(--background)', strokeWidth: 2 }}
                   isAnimationActive={false}
                   connectNulls={false}
                 />
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex h-full items-center justify-center text-xs font-mono text-[#9aa9ac]">
+            <div className="flex h-full items-center justify-center text-xs font-mono text-muted-foreground">
               Awaiting telemetry samples from Order API…
             </div>
           )}
@@ -238,11 +239,11 @@ export function LatencyChartCard({
       </div>
 
       {/* Footer freshness indicator */}
-      <div className="pt-2 border-t border-[#1E2942] flex items-center justify-between font-mono text-[10px] text-[#9aa9ac]">
+      <div className="pt-2 border-t border-border flex flex-wrap gap-2 items-center justify-between font-mono text-[10px] text-muted-foreground">
         <div className="flex items-center gap-2">
-          <Clock className="h-3.5 w-3.5 text-[#00e5ff]" aria-hidden="true" />
+          <Clock className="h-3.5 w-3.5 text-accent-ink" aria-hidden="true" />
           {isStale ? (
-            <span className="text-amber-400 font-semibold">
+            <span className="text-warning font-semibold">
               TELEMETRY STALE {secondsAgo !== null ? `· last received ${secondsAgo}s ago` : ''}
             </span>
           ) : lastUpdated ? (

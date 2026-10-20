@@ -27,16 +27,16 @@ function getNodeIcon(id) {
 function getStatusBadgeClass(status) {
   switch (status) {
     case 'simulated':
-      return 'bg-violet-950 text-violet-200 border-violet-400';
+      return 'bg-simulated/10 text-simulated border-simulated';
     case 'healthy':
-      return 'bg-teal-950/60 text-[#00e5ff] border-teal-500/40';
+      return 'bg-teal-950/60 text-accent-ink border-teal-500/40';
     case 'degraded':
-      return 'bg-amber-950/60 text-amber-300 border-amber-500/40';
+      return 'bg-warning/10 text-warning border-warning/40';
     case 'unhealthy':
       return 'bg-rose-950/60 text-rose-300 border-rose-500/40';
     case 'unknown':
     default:
-      return 'bg-slate-900 text-[#9aa9ac] border-slate-700';
+      return 'bg-muted text-muted-foreground border-border';
   }
 }
 
@@ -71,12 +71,12 @@ export function TopologyLayerList({
       {Object.entries(grouped).map(([layerName, nodes]) => (
         <div key={layerName} className="space-y-2">
           {/* Layer Header */}
-          <div className="flex items-center justify-between pb-1 border-b border-[#1E2942]/60">
+          <div className="flex items-center justify-between pb-1 border-b border-border/60">
             <div>
-              <h3 className="text-xs font-bold font-mono uppercase tracking-wider text-white">
+              <h3 className="text-xs font-bold font-mono uppercase tracking-wider text-foreground">
                 {layerName} Layer ({nodes.length})
               </h3>
-              <p className="text-[11px] font-mono text-[#9aa9ac]">
+              <p className="text-[11px] font-mono text-muted-foreground">
                 {layerDescriptions[layerName] || ''}
               </p>
             </div>
@@ -98,20 +98,20 @@ export function TopologyLayerList({
                   title={node.detail}
                   aria-label={`${node.name}, ${node.status}, ${node.role}`}
                   aria-expanded={isSelected}
-                  className={`w-full p-3.5 rounded-xl border text-left flex items-center justify-between gap-3 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00e5ff] ${
+                  className={`w-full p-3.5 rounded-xl border text-left flex items-center justify-between gap-3 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ${
                     isSelected
-                      ? 'bg-[#18233C] border-[#00e5ff] ring-2 ring-[#00e5ff]/40 shadow-md'
+                      ? 'bg-secondary border-accent-ink ring-2 ring-focus-ring/40 shadow-md'
                       : isToxiproxyActive
-                      ? 'bg-amber-950/20 border-amber-500/60'
-                      : 'bg-[#121A2F] border-[#1E2942] hover:bg-[#15203B] hover:border-[#2D3F65]'
+                      ? 'bg-warning/10 border-warning/60'
+                      : 'bg-surface border-border hover:bg-secondary hover:border-border'
                   }`}
                 >
                   <div className="flex items-start gap-3 min-w-0">
                     <div
                       className={`p-2 rounded-lg shrink-0 ${
                         isToxiproxyActive
-                          ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                          : 'bg-[#00e5ff]/10 text-[#00e5ff] border border-[#00e5ff]/20'
+                          ? 'bg-warning/10 text-warning border border-warning/30'
+                          : 'bg-primary/10 text-accent-ink border border-accent-ink/20'
                       }`}
                     >
                       <Icon className="h-4 w-4" />
@@ -119,21 +119,21 @@ export function TopologyLayerList({
 
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-white tracking-tight truncate">
+                        <span className="text-xs font-bold text-foreground tracking-tight truncate">
                           {node.name}
                         </span>
-                        <span className="text-[10px] font-mono text-[#9aa9ac]">
+                        <span className="text-[10px] font-mono text-muted-foreground">
                           :{node.ports.join(', :')}
                         </span>
                       </div>
 
-                      <div className="text-[11px] font-mono text-[#9aa9ac] truncate">
+                      <div className="text-[11px] font-mono text-muted-foreground truncate">
                         {node.role}
                       </div>
 
-                      <div className="text-[10px] font-mono text-[#dee1f9]/80 truncate mt-0.5">
+                      <div className="text-[10px] font-mono text-foreground/80 truncate mt-0.5">
                         {isToxiproxyActive ? (
-                          <span className="text-amber-300 font-semibold">
+                          <span className="text-warning font-semibold">
                             ⚡ Fault active: {experiment.fault_type}
                           </span>
                         ) : (
@@ -151,7 +151,7 @@ export function TopologyLayerList({
                     >
                       {node.status}
                     </span>
-                    <ChevronRight className="h-4 w-4 text-[#9aa9ac]" />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
                   </div>
                 </button>
               );

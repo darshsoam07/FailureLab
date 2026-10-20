@@ -113,15 +113,15 @@ export function ReportsView({
   return (
     <div className="space-y-6">
       {/* Studio Header Banner */}
-      <div className="rounded-xl bg-[#121A2F] border border-[#1E2942] p-5 flex flex-wrap items-center justify-between gap-4 shadow-md">
+      <div className="rounded-xl bg-surface border border-border p-5 flex flex-wrap items-center justify-between gap-4 shadow-md">
         <div>
           <div className="flex items-center gap-2.5">
-            <FileText className="h-5 w-5 text-[#00e5ff]" />
-            <h2 className="text-xl font-bold text-white tracking-tight">
+            <FileText className="h-5 w-5 text-accent-ink" />
+            <h2 className="text-xl font-bold text-foreground tracking-tight">
               Resilience Audit & Post-Mortem Reports
             </h2>
           </div>
-          <p className="text-xs text-[#9aa9ac] mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Historical resilience validation records, telemetry snapshots, and automated AI SRE root-cause assessments.
           </p>
         </div>
@@ -130,7 +130,7 @@ export function ReportsView({
           type="button"
           onClick={handleExportLoadedPage}
           disabled={!loadedExperiments.length}
-          className="px-3.5 py-2 rounded-lg bg-[#00e5ff]/10 border border-[#00e5ff]/30 text-[#00e5ff] hover:bg-[#00e5ff] hover:text-[#0e1323] transition-all text-xs font-mono font-semibold flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
+          className="px-3.5 py-2 rounded-lg bg-primary/10 border border-accent-ink/30 text-accent-ink hover:bg-primary hover:text-primary-foreground transition-all text-xs font-mono font-semibold flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
         >
           <Download className="h-4 w-4" />
           <span>Export Audit Trail JSON</span>
@@ -140,63 +140,63 @@ export function ReportsView({
       {/* Summary KPI Cards (From Loaded Data Only) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* KPI 1: Loaded */}
-        <div className="rounded-xl bg-[#121A2F] border border-[#1E2942] p-4 shadow-sm">
-          <div className="text-[10px] font-sans font-semibold text-[#9aa9ac] uppercase tracking-wider flex items-center justify-between">
+        <div className="rounded-xl bg-surface border border-border p-4 shadow-sm">
+          <div className="text-[10px] font-sans font-semibold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
             <span>Loaded Experiments</span>
-            <Layers className="h-3.5 w-3.5 text-[#00e5ff]" />
+            <Layers className="h-3.5 w-3.5 text-accent-ink" />
           </div>
           <div className="my-2 flex items-baseline justify-between">
-            <span className="font-mono text-3xl font-bold text-white">{kpis.loadedCount}</span>
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-[#1E2942] text-[#00e5ff] border border-[#1E2942]">
+            <span className="font-mono text-3xl font-bold text-foreground">{kpis.loadedCount}</span>
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-border text-accent-ink border border-border">
               ARCHIVED
             </span>
           </div>
-          <p className="text-[11px] font-mono text-[#9aa9ac]">of loaded experiments</p>
+          <p className="text-[11px] font-mono text-muted-foreground">of loaded experiments</p>
         </div>
 
         {/* KPI 2: Completed */}
-        <div className="rounded-xl bg-[#121A2F] border border-[#1E2942] p-4 shadow-sm">
-          <div className="text-[10px] font-sans font-semibold text-[#9aa9ac] uppercase tracking-wider flex items-center justify-between">
+        <div className="rounded-xl bg-surface border border-border p-4 shadow-sm">
+          <div className="text-[10px] font-sans font-semibold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
             <span>Completed Drills</span>
-            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+            <CheckCircle2 className="h-3.5 w-3.5 text-success" />
           </div>
           <div className="my-2 flex items-baseline justify-between">
-            <span className="font-mono text-3xl font-bold text-emerald-400">{kpis.completedCount}</span>
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-emerald-950/60 text-emerald-300 border border-emerald-800/60">
+            <span className="font-mono text-3xl font-bold text-success">{kpis.completedCount}</span>
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-success/10 text-success border border-success/60">
               NORMAL
             </span>
           </div>
-          <p className="text-[11px] font-mono text-[#9aa9ac]">of loaded experiments</p>
+          <p className="text-[11px] font-mono text-muted-foreground">of loaded experiments</p>
         </div>
 
         {/* KPI 3: Aborted by SLO */}
-        <div className="rounded-xl bg-[#121A2F] border border-[#1E2942] p-4 shadow-sm">
-          <div className="text-[10px] font-sans font-semibold text-[#9aa9ac] uppercase tracking-wider flex items-center justify-between">
+        <div className="rounded-xl bg-surface border border-border p-4 shadow-sm">
+          <div className="text-[10px] font-sans font-semibold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
             <span>Aborted by SLO</span>
-            <AlertTriangle className="h-3.5 w-3.5 text-red-400" />
+            <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
           </div>
           <div className="my-2 flex items-baseline justify-between">
-            <span className="font-mono text-3xl font-bold text-red-400">{kpis.abortedSloCount}</span>
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-red-950/60 text-red-300 border border-red-800/60 font-bold">
+            <span className="font-mono text-3xl font-bold text-destructive">{kpis.abortedSloCount}</span>
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-destructive/10 text-destructive border border-destructive/60 font-bold">
               WATCHDOG
             </span>
           </div>
-          <p className="text-[11px] font-mono text-[#9aa9ac]">of loaded experiments</p>
+          <p className="text-[11px] font-mono text-muted-foreground">of loaded experiments</p>
         </div>
 
         {/* KPI 4: Manually Stopped */}
-        <div className="rounded-xl bg-[#121A2F] border border-[#1E2942] p-4 shadow-sm">
-          <div className="text-[10px] font-sans font-semibold text-[#9aa9ac] uppercase tracking-wider flex items-center justify-between">
+        <div className="rounded-xl bg-surface border border-border p-4 shadow-sm">
+          <div className="text-[10px] font-sans font-semibold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
             <span>Manually Stopped</span>
-            <PowerOff className="h-3.5 w-3.5 text-amber-400" />
+            <PowerOff className="h-3.5 w-3.5 text-warning" />
           </div>
           <div className="my-2 flex items-baseline justify-between">
-            <span className="font-mono text-3xl font-bold text-amber-300">{kpis.manuallyStoppedCount}</span>
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-amber-950/60 text-amber-300 border border-amber-800/60">
+            <span className="font-mono text-3xl font-bold text-warning">{kpis.manuallyStoppedCount}</span>
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-warning/10 text-warning border border-warning/60">
               OPERATOR
             </span>
           </div>
-          <p className="text-[11px] font-mono text-[#9aa9ac]">of loaded experiments</p>
+          <p className="text-[11px] font-mono text-muted-foreground">of loaded experiments</p>
         </div>
       </div>
 
@@ -233,12 +233,12 @@ export function ReportsView({
             onClose={() => setSelectedId(null)}
           />
         ) : (
-          <div className="rounded-xl bg-[#121A2F] border border-[#1E2942] p-8 shadow-md text-center">
-            <Sparkles className="h-8 w-8 text-purple-400 mx-auto mb-3 opacity-60" />
-            <h4 className="text-sm font-bold text-white font-mono uppercase tracking-wider">
+          <div className="rounded-xl bg-surface border border-border p-8 shadow-md text-center">
+            <Sparkles className="h-8 w-8 text-simulated mx-auto mb-3 opacity-60" />
+            <h4 className="text-sm font-bold text-foreground font-mono uppercase tracking-wider">
               No Experiment Selected
             </h4>
-            <p className="text-xs text-[#9aa9ac] mt-1 max-w-sm mx-auto">
+            <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
               Select an experiment from the audit trail to inspect post-mortem findings, heuristic confidence, and AI recommendations.
             </p>
           </div>

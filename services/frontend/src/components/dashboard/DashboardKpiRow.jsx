@@ -111,7 +111,7 @@ export function DashboardKpiRow({ metrics, experiment, buffer }) {
         status={p95Status}
         badgeLabel={p95Badge}
         sparklineData={p95Sparkline}
-        sparklineColor={isP95Breached ? '#ef4444' : isP95Degraded ? '#f59e0b' : '#00daf3'}
+        sparklineColor={isP95Breached ? 'var(--destructive)' : isP95Degraded ? 'var(--warning)' : 'var(--accent-ink)'}
       />
 
       {/* KPI 2: Error Rate */}
@@ -123,7 +123,7 @@ export function DashboardKpiRow({ metrics, experiment, buffer }) {
         status={errorStatus}
         badgeLabel={errorBadge}
         sparklineData={errorSparkline}
-        sparklineColor="#8B5CF6"
+        sparklineColor="var(--simulated)"
       />
 
       {/* KPI 3: Orders in last 60s (honest count, NO sparkline) */}

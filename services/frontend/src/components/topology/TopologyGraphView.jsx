@@ -155,16 +155,16 @@ function getNodeIcon(id) {
 function getStatusColor(status) {
   switch (status) {
     case 'simulated':
-      return '#c4b5fd';
+      return 'var(--simulated)';
     case 'healthy':
-      return '#00e5ff';
+      return 'var(--accent-ink)';
     case 'degraded':
-      return '#f59e0b';
+      return 'var(--warning)';
     case 'unhealthy':
-      return '#ef4444';
+      return 'var(--destructive)';
     case 'unknown':
     default:
-      return '#64748b';
+      return 'var(--muted-foreground)';
   }
 }
 
@@ -195,30 +195,30 @@ export function TopologyGraphView({
   });
 
   return (
-    <div className="relative w-full rounded-2xl bg-[#0B1020] border border-[#1E2942] p-4 shadow-xl overflow-hidden">
+    <div className="terminal-panel relative w-full rounded-lg bg-surface-dark border border-border p-4 shadow-sm">
       {/* Legend & Guidance Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-[#1E2942]/70 text-xs font-mono">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-border/70 text-xs font-mono">
         <div className="flex items-center gap-3">
-          <span className="text-white font-semibold flex items-center gap-1.5">
-            <Network className="h-4 w-4 text-[#00e5ff]" />
+          <span className="text-foreground font-semibold flex items-center gap-1.5">
+            <Network className="h-4 w-4 text-accent-ink" />
             Architecture Graph
           </span>
-          <span className="text-[#9aa9ac] text-[11px] hidden sm:inline">
+          <span className="text-muted-foreground text-[11px] hidden sm:inline">
             Click any service node to inspect probe checks and dependencies
           </span>
         </div>
 
-        <div className="flex items-center gap-3 text-[11px] text-[#9aa9ac]">
+        <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
           <span className="flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-[#00e5ff]" />
+            <span className="h-2 w-2 rounded-full bg-primary" />
             Healthy
           </span>
           <span className="flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-amber-400" />
+            <span className="h-2 w-2 rounded-full bg-warning" />
             Degraded (derived)
           </span>
           <span className="flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-slate-500" />
+            <span className="h-2 w-2 rounded-full bg-muted" />
             Unknown (unprobed)
           </span>
         </div>
@@ -234,7 +234,7 @@ export function TopologyGraphView({
         >
           {/* Arrowhead Markers for Edge States */}
           <defs>
-            <marker id="arrow-simulated" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 9 5 L 0 9 z" fill="#c4b5fd" /></marker>
+            <marker id="arrow-simulated" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 9 5 L 0 9 z" fill="var(--simulated)" /></marker>
             <marker
               id="arrow-healthy"
               viewBox="0 0 10 10"
@@ -244,7 +244,7 @@ export function TopologyGraphView({
               markerHeight="6"
               orient="auto-start-reverse"
             >
-              <path d="M 0 1 L 9 5 L 0 9 z" fill="#00e5ff" />
+              <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--accent-ink)" />
             </marker>
 
             <marker
@@ -256,7 +256,7 @@ export function TopologyGraphView({
               markerHeight="6"
               orient="auto-start-reverse"
             >
-              <path d="M 0 1 L 9 5 L 0 9 z" fill="#f59e0b" />
+              <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--warning)" />
             </marker>
 
             <marker
@@ -268,7 +268,7 @@ export function TopologyGraphView({
               markerHeight="6"
               orient="auto-start-reverse"
             >
-              <path d="M 0 1 L 9 5 L 0 9 z" fill="#ef4444" />
+              <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--destructive)" />
             </marker>
 
             <marker
@@ -280,7 +280,7 @@ export function TopologyGraphView({
               markerHeight="6"
               orient="auto-start-reverse"
             >
-              <path d="M 0 1 L 9 5 L 0 9 z" fill="#64748b" />
+              <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--muted-foreground)" />
             </marker>
           </defs>
 
@@ -331,11 +331,11 @@ export function TopologyGraphView({
                     <div
                       className={`text-[9px] font-mono text-center px-1.5 py-0.5 rounded border leading-tight truncate shadow-sm transition-all ${
                         isDegraded
-                          ? 'bg-[#1e1507] text-amber-300 border-amber-500/60'
+                          ? 'bg-muted text-warning border-warning/60'
                           : edge.status === 'unknown'
-                          ? 'bg-[#0B1020]/90 text-[#9aa9ac] border-[#1E2942]'
-                          : 'bg-[#0B1020]/90 text-[#dee1f9] border-[#1E2942]'
-                      } ${isHovered ? 'ring-1 ring-[#00e5ff] scale-105' : ''}`}
+                          ? 'bg-background/90 text-muted-foreground border-border'
+                          : 'bg-background/90 text-foreground border-border'
+                      } ${isHovered ? 'ring-1 ring-focus-ring scale-105' : ''}`}
                       title={`${edge.label} (${edge.protocol}) - ${edge.derivation}`}
                     >
                       {isDegraded ? `⚠️ ${edge.label} (derived)` : edge.label}
@@ -373,12 +373,12 @@ export function TopologyGraphView({
                     title={health.detail}
                     aria-label={`${node.name}, ${health.status}, ${node.role}`}
                     aria-expanded={isSelected}
-                    className={`w-full h-full p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00e5ff] ${
+                    className={`w-full h-full p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ${
                       isSelected
-                        ? 'bg-[#18233C] border-[#00e5ff] ring-2 ring-[#00e5ff]/40 shadow-lg shadow-[#00e5ff]/10 scale-[1.02]'
+                        ? 'bg-secondary border-accent-ink ring-2 ring-focus-ring/40 shadow-lg shadow-accent-ink/10 scale-[1.02]'
                         : isToxiproxyActive
-                        ? 'bg-amber-950/30 border-amber-500/70 shadow-md shadow-amber-500/10'
-                        : 'bg-[#121A2F] border-[#1E2942] hover:border-[#2D3F65] hover:bg-[#15203B]'
+                        ? 'bg-warning/10 border-warning/70 shadow-md shadow-warning/10'
+                        : 'bg-surface border-border hover:border-border hover:bg-secondary'
                     }`}
                   >
                     {/* Top Row: Icon, Layer, Status Pill */}
@@ -386,10 +386,10 @@ export function TopologyGraphView({
                       <div className="flex items-center gap-1.5 min-w-0">
                         <Icon
                           className={`h-4 w-4 shrink-0 ${
-                            isToxiproxyActive ? 'text-amber-400' : 'text-[#00e5ff]'
+                            isToxiproxyActive ? 'text-warning' : 'text-accent-ink'
                           }`}
                         />
-                        <span className="text-[10px] font-mono uppercase tracking-wider text-[#9aa9ac] truncate">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground truncate">
                           {node.layer}
                         </span>
                       </div>
@@ -399,7 +399,7 @@ export function TopologyGraphView({
                           className="h-1.5 w-1.5 rounded-full"
                           style={{ backgroundColor: statusColor }}
                         />
-                        <span className="text-[9px] font-mono text-[#dee1f9] uppercase">
+                        <span className="text-[9px] font-mono text-foreground uppercase">
                           {health.status}
                         </span>
                       </div>
@@ -407,10 +407,10 @@ export function TopologyGraphView({
 
                     {/* Middle: Service Name & Ports */}
                     <div className="my-0.5">
-                      <div className="text-xs font-bold text-white tracking-tight truncate">
+                      <div className="text-xs font-bold text-foreground tracking-tight truncate">
                         {node.name}
                       </div>
-                      <div className="text-[10px] font-mono text-[#00e5ff]/80">
+                      <div className="text-[10px] font-mono text-accent-ink/80">
                         {node.ports.length > 1
                           ? `Ports :${node.ports.join(', :')}`
                           : `Port :${node.ports[0]}`}
@@ -418,9 +418,9 @@ export function TopologyGraphView({
                     </div>
 
                     {/* Bottom: Active Fault Glow or Check Detail */}
-                    <div className="text-[9px] font-mono truncate text-[#9aa9ac] border-t border-[#1E2942]/60 pt-1 w-full">
+                    <div className="text-[9px] font-mono truncate text-muted-foreground border-t border-border/60 pt-1 w-full">
                       {isToxiproxyActive ? (
-                        <span className="text-amber-300 font-semibold truncate block">
+                        <span className="text-warning font-semibold truncate block">
                           ⚡ FAULT: {experiment.fault_type}
                         </span>
                       ) : (

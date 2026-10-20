@@ -223,7 +223,7 @@ export default function App({ client = api }) {
   const stop = id => change('stop', id);
 
   return (
-    <div className="min-h-screen bg-[#0B1020] text-[#dee1f9] flex flex-col md:flex-row antialiased font-sans">
+    <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row antialiased font-sans">
       <a href="#main" className="skip-link">Skip to content</a>
       {/* Desktop & Tablet Sidebar */}
       <SideNavBar
@@ -233,7 +233,7 @@ export default function App({ client = api }) {
       />
 
       {/* Main Content Viewport */}
-      <div className="flex-1 min-w-0 md:ml-16 lg:ml-64 flex flex-col min-h-screen overflow-x-hidden">
+      <div className="flex-1 min-w-0 md:ml-16 lg:ml-64 flex flex-col min-h-screen">
         <TopNavBar
           activeScreen={activeScreen}
           activeExperiment={experiment}
@@ -249,13 +249,13 @@ export default function App({ client = api }) {
           {notice && (
             <div
               role="status" aria-live="polite"
-              className="rounded-xl border border-[#1E2942] bg-[#121A2F] px-4 py-3 text-xs font-mono text-[#c3f5ff] flex items-center justify-between shadow-md"
+              className="rounded-xl border border-border bg-surface px-4 py-3 text-xs font-mono text-foreground flex items-center justify-between shadow-md"
             >
               <span>{notice}</span>
               <button
                 type="button"
                 onClick={() => setNotice('')}
-                className="text-[#9aa9ac] hover:text-white text-xs underline font-sans cursor-pointer ml-3 shrink-0"
+                className="text-muted-foreground hover:text-foreground text-xs underline font-sans cursor-pointer ml-3 shrink-0"
               >
                 Dismiss
               </button>
@@ -270,7 +270,7 @@ export default function App({ client = api }) {
             />
           )}
 
-          {(orderReadiness.error || controllerReadiness.error) && <p role="status" aria-live="polite" className="text-amber-200 text-sm">Readiness probe unavailable: {orderReadiness.error ? 'Order API' : ''} {controllerReadiness.error ? 'Controller' : ''}. Health signals are unknown until a response succeeds.</p>}
+          {(orderReadiness.error || controllerReadiness.error) && <p role="status" aria-live="polite" className="text-warning text-sm">Readiness probe unavailable: {orderReadiness.error ? 'Order API' : ''} {controllerReadiness.error ? 'Controller' : ''}. Health signals are unknown until a response succeeds.</p>}
           <Suspense fallback={<p role="status" aria-live="polite">Loading page…</p>}>
           {/* Screen Routing */}
           {activeScreen === 'dashboard' && (
@@ -354,7 +354,7 @@ export default function App({ client = api }) {
           </Suspense>
         </main>
 
-        <footer className="px-4 py-4 sm:px-8 border-t border-[#1E2942]/60 text-center sm:flex sm:justify-between font-mono text-[10px] text-[#9aa9ac] uppercase tracking-widest select-none">
+        <footer className="px-4 py-4 sm:px-8 border-t border-border/60 text-center sm:flex sm:justify-between font-mono text-[10px] text-muted-foreground uppercase tracking-widest select-none">
           <span>FailureLab · AI-Assisted Resilience Engineering</span>
           <span className="hidden sm:inline">Transactional Outbox · Idempotent Fulfillment · SLO Watchdogs</span>
         </footer>

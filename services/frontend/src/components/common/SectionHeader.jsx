@@ -19,17 +19,17 @@ export function SectionHeader({
   divider = true,
   className = '',
 }) {
-  const borderClass = divider ? 'pb-3 border-b border-[#1E2942]' : '';
+  const borderClass = divider ? 'pb-3 border-b border-border' : '';
 
   return (
     <div className={`flex flex-wrap items-center justify-between gap-2 ${borderClass} ${className}`}>
       <div className="flex flex-wrap items-center gap-2">
-        {icon && <span className="text-[#00e5ff] shrink-0">{icon}</span>}
-        <h2 className="text-[17px] font-semibold text-[#dee1f9] tracking-tight">
+        {icon && <span className="text-accent-ink shrink-0">{icon}</span>}
+        <h2 className="text-[17px] font-semibold text-foreground tracking-tight">
           {title}
         </h2>
         {subtitle && (
-          <span className="text-[12px] text-[#9aa9ac] font-mono ml-1">
+          <span className="text-[12px] text-muted-foreground font-mono ml-1">
             {subtitle}
           </span>
         )}

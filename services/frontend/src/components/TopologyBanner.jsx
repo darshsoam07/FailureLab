@@ -89,27 +89,27 @@ export default function TopologyBanner({
   return (
     <section
       aria-label="Service topology pipeline"
-      className="rounded-xl border border-[#1E2942] bg-[#121A2F] p-4 md:p-5 shadow-md select-none"
+      className="rounded-xl border border-border bg-surface p-4 md:p-5 shadow-md select-none"
     >
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#1E2942]">
-        <div className="flex items-center gap-2">
-          <Network className="h-4 w-4 text-[#00e5ff]" aria-hidden="true" />
-          <h3 className="text-[16px] md:text-[17px] font-semibold text-[#dee1f9]">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-border">
+        <div className="flex flex-wrap items-center gap-2">
+          <Network className="h-4 w-4 shrink-0 text-accent-ink" aria-hidden="true" />
+          <h3 className="text-[16px] md:text-[17px] font-semibold text-foreground">
             System Topology Pipeline
           </h3>
-          <span className="text-[11px] font-mono text-[#9aa9ac] ml-1">
+          <span className="text-[11px] font-mono text-muted-foreground ml-1">
             end-to-end order flow
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <span
             className={`text-xs font-mono font-medium ${
               stale
-                ? 'text-amber-400'
+                ? 'text-warning'
                 : running
-                ? 'text-red-400 font-bold uppercase animate-pulse'
-                : 'text-[#9aa9ac]'
+                ? 'text-destructive font-bold uppercase animate-pulse'
+                : 'text-muted-foreground'
             }`}
           >
             {stale ? 'PROBE SIGNALS STALE' : running ? 'CHAOS INJECTION ACTIVE' : 'STEADY STATE'}
@@ -119,7 +119,7 @@ export default function TopologyBanner({
             <button
               type="button"
               onClick={handleNodeClick}
-              className="text-xs font-mono text-[#00e5ff] hover:underline cursor-pointer"
+              className="text-xs font-mono text-accent-ink hover:underline cursor-pointer"
             >
               View Service Map →
             </button>
@@ -138,15 +138,15 @@ export default function TopologyBanner({
                   type="button"
                   onClick={handleNodeClick}
                   title={status === 'simulated' ? 'Faults are simulated; results are not from a real proxy' : `Click to view ${name} in Topology`}
-                  className={`relative flex min-h-[110px] flex-1 flex-col items-center justify-between rounded-xl border p-3 text-center transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00e5ff] ${
+                  className={`relative flex min-h-[110px] flex-1 flex-col items-center justify-between rounded-xl border p-3 text-center transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ${
                     isToxiproxyActive
-                      ? 'border-amber-500/80 bg-amber-950/30 glow-amber'
-                      : 'border-[#1E2942] bg-[#0B1020] hover:border-[#22304D]'
+                      ? 'border-warning/80 bg-warning/10 glow-amber'
+                      : 'border-border bg-background hover:border-border'
                   }`}
                 >
                   {/* Status Badge in Corner */}
                   <div className="w-full flex items-center justify-between">
-                    <span className="text-[9px] font-mono text-[#9aa9ac] uppercase">
+                    <span className="text-[9px] font-mono text-muted-foreground uppercase">
                       0{index + 1}
                     </span>
                     <StatusBadge
@@ -163,11 +163,11 @@ export default function TopologyBanner({
                       aria-hidden="true"
                       className={`mb-1 transition-colors ${
                         isToxiproxyActive
-                          ? 'text-amber-300 motion-safe:animate-pulse'
-                          : 'text-[#00e5ff] group-hover:text-[#dee1f9]'
+                          ? 'text-warning motion-safe:animate-pulse'
+                          : 'text-accent-ink group-hover:text-foreground'
                       }`}
                     />
-                    <span className="text-xs font-semibold text-[#dee1f9] group-hover:text-white">
+                    <span className="text-xs font-semibold text-foreground group-hover:text-foreground">
                       {name}
                     </span>
                   </div>
@@ -175,7 +175,7 @@ export default function TopologyBanner({
                   {/* Node detail / fault label */}
                   <span
                     className={`text-[10px] font-mono truncate max-w-[150px] ${
-                      isToxiproxyActive ? 'text-amber-300 font-bold' : 'text-[#9aa9ac]'
+                      isToxiproxyActive ? 'text-warning font-bold' : 'text-muted-foreground'
                     }`}
                   >
                     {detail}
@@ -186,7 +186,7 @@ export default function TopologyBanner({
                   <ArrowRight
                     size={14}
                     aria-hidden="true"
-                    className="hidden xl:block shrink-0 text-[#1E2942]"
+                    className="hidden xl:block shrink-0 text-border"
                   />
                 )}
               </li>
@@ -196,14 +196,14 @@ export default function TopologyBanner({
       </div>
 
       {running && (
-        <div className="mt-3 p-3 rounded-lg border border-red-500/50 bg-red-950/30 flex items-center justify-between text-xs font-mono text-red-200">
+        <div className="mt-3 p-3 rounded-lg border border-destructive/50 bg-destructive/10 flex items-center justify-between text-xs font-mono text-destructive">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-red-400 animate-ping" />
+            <span className="h-2 w-2 rounded-full bg-destructive animate-ping" />
             <span>
-              Active Experiment: <strong className="text-white">{experiment.name}</strong> · {faultLabel(experiment)}
+              Active Experiment: <strong className="text-foreground">{experiment.name}</strong> · {faultLabel(experiment)}
             </span>
           </div>
-          <span className="text-[#9aa9ac] text-[11px] hidden sm:inline">
+          <span className="text-muted-foreground text-[11px] hidden sm:inline">
             Injected via Toxiproxy proxy client
           </span>
         </div>

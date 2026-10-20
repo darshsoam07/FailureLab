@@ -99,7 +99,7 @@ export function EmergencyStopModal({
         aria-modal="true"
         aria-labelledby="emergency-dialog-title"
         aria-describedby="emergency-dialog-desc"
-        className="relative w-full max-w-lg rounded-xl bg-[#121A2F] border-2 border-red-500/80 p-6 shadow-2xl glow-red select-none"
+        className="relative w-full max-w-lg rounded-xl bg-surface border-2 border-destructive/80 p-6 shadow-2xl glow-red select-none"
       >
         {/* Close Icon button */}
         <button
@@ -109,22 +109,22 @@ export function EmergencyStopModal({
           }}
           disabled={pending}
           aria-label="Cancel emergency stop dialog"
-          className="absolute top-4 right-4 text-[#9aa9ac] hover:text-[#dee1f9] p-1 rounded-lg transition-colors disabled:opacity-40 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00e5ff]"
+          className="absolute top-4 right-4 text-muted-foreground hover:text-foreground p-1 rounded-lg transition-colors disabled:opacity-40 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
         >
           <X className="h-5 w-5" />
         </button>
 
         {/* Dialog Header */}
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-xl bg-red-950/80 border border-red-500/60 flex items-center justify-center shrink-0">
-            <ShieldAlert className="h-6 w-6 text-red-400 animate-pulse" aria-hidden="true" />
+          <div className="w-12 h-12 rounded-xl bg-destructive/10 border border-destructive/60 flex items-center justify-center shrink-0">
+            <ShieldAlert className="h-6 w-6 text-destructive animate-pulse" aria-hidden="true" />
           </div>
           <div className="min-w-0 pr-6">
-            <h2 id="emergency-dialog-title" className="text-xl font-bold text-white tracking-tight">
+            <h2 id="emergency-dialog-title" className="text-xl font-bold text-foreground tracking-tight">
               Execute Emergency Circuit Breaker?
             </h2>
-            <p className="text-xs text-[#9aa9ac] mt-1 font-mono">
-              Target: <span className="text-[#00e5ff] font-semibold">{experiment.target_service || 'inventory_service'}</span>
+            <p className="text-xs text-muted-foreground mt-1 font-mono">
+              Target: <span className="text-accent-ink font-semibold">{experiment.target_service || 'inventory_service'}</span>
             </p>
           </div>
         </div>
@@ -142,19 +142,19 @@ export function EmergencyStopModal({
         {/* Diagnostic / Impact Details */}
         <div
           id="emergency-dialog-desc"
-          className="my-5 space-y-3 text-xs text-[#dee1f9]/90 bg-[#0B1020] p-4 rounded-lg border border-[#1E2942]"
+          className="my-5 space-y-3 text-xs text-foreground/90 bg-background p-4 rounded-lg border border-border"
         >
-          <div className="flex items-center gap-2 text-amber-300 font-semibold font-mono">
+          <div className="flex items-center gap-2 text-warning font-semibold font-mono">
             <AlertTriangle className="h-4 w-4" aria-hidden="true" />
             <span>Immediate Kill-Switch Action:</span>
           </div>
 
-          <ul className="list-disc list-inside space-y-1.5 text-[#9aa9ac] pl-1 font-mono text-[11px]">
+          <ul className="list-disc list-inside space-y-1.5 text-muted-foreground pl-1 font-mono text-[11px]">
             <li>
-              Active Experiment: <strong className="text-white">{experiment.name}</strong>
+              Active Experiment: <strong className="text-foreground">{experiment.name}</strong>
             </li>
             <li>
-              Fault Type: <strong className="text-red-300">{experiment.fault_type}</strong>
+              Fault Type: <strong className="text-destructive">{experiment.fault_type}</strong>
             </li>
             <li>
               Removes active toxics immediately via Toxiproxy proxy client
@@ -163,7 +163,7 @@ export function EmergencyStopModal({
               Restores upstream HTTP connections to unhindered bypass mode
             </li>
             <li>
-              Transitions experiment record to <strong className="text-white">COMPLETED</strong> state with <strong className="text-amber-300">MANUAL_STOP</strong>
+              Transitions experiment record to <strong className="text-foreground">COMPLETED</strong> state with <strong className="text-warning">MANUAL_STOP</strong>
             </li>
           </ul>
         </div>
@@ -175,7 +175,7 @@ export function EmergencyStopModal({
             type="button"
             onClick={onClose}
             disabled={pending}
-            className="px-4 py-2 text-xs font-semibold text-[#9aa9ac] hover:text-[#dee1f9] hover:bg-[#1E2942] rounded-lg transition-colors cursor-pointer disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+            className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-border rounded-lg transition-colors cursor-pointer disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
           >
             Cancel (Keep Running)
           </button>
@@ -184,7 +184,7 @@ export function EmergencyStopModal({
             type="button"
             onClick={handleExecuteStop}
             disabled={pending}
-            className="px-5 py-2 text-xs font-bold text-white bg-[#b91c1c] hover:bg-[#991b1b] rounded-lg shadow-lg glow-red transition-all active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+            className="px-5 py-2 text-xs font-bold text-on-destructive bg-danger-button hover:brightness-110 rounded-lg shadow-sm transition-all active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
           >
             {pending ? (
               <>

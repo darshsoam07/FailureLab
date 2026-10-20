@@ -90,24 +90,24 @@ export function PostMortemPanel({
   const confidencePct = report ? formatConfidence(report.confidence_score) : 0;
 
   return (
-    <div className="rounded-xl bg-[#121A2F] border border-[#1E2942] p-5 shadow-md space-y-6">
+    <div className="rounded-xl bg-surface border border-border p-5 shadow-md space-y-6">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[#1E2942]">
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-border">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
-            <BrainCircuit className="h-5 w-5 text-purple-400" />
-            <h3 className="text-base font-bold text-white tracking-tight">
+            <BrainCircuit className="h-5 w-5 text-simulated" />
+            <h3 className="text-base font-bold text-foreground tracking-tight">
               AI SRE Post-Mortem Panel
             </h3>
             {meta?.reportSource && (
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-purple-950/60 text-purple-300 border border-purple-800/40">
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-simulated/10 text-simulated border border-simulated/40">
                 {meta.reportSource}
               </span>
             )}
           </div>
           {detail && (
-            <div className="flex flex-wrap items-center gap-2.5 text-xs font-mono text-[#9aa9ac]">
-              <span>ID: <strong className="text-white">{detail.id}</strong></span>
+            <div className="flex flex-wrap items-center gap-2.5 text-xs font-mono text-muted-foreground">
+              <span>ID: <strong className="text-foreground">{detail.id}</strong></span>
               <span>·</span>
               <ExperimentStatusBadge
                 experiment={detail}
@@ -123,7 +123,7 @@ export function PostMortemPanel({
             <button
               type="button"
               onClick={handleExportJson}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#1E2942] bg-[#0B1020] hover:text-white text-xs font-mono text-[#00e5ff] transition-all cursor-pointer shadow-sm"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-background hover:text-foreground text-xs font-mono text-accent-ink transition-all cursor-pointer shadow-sm"
               title="Export Experiment Audit JSON (no secrets or URLs)"
             >
               <Download className="h-3.5 w-3.5" />
@@ -136,7 +136,7 @@ export function PostMortemPanel({
               type="button"
               onClick={onClose}
               aria-label="Close post-mortem panel"
-              className="p-1.5 rounded-lg text-[#9aa9ac] hover:text-white transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
               <X className="h-4 w-4" />
             </button>
@@ -151,7 +151,7 @@ export function PostMortemPanel({
           <button
             type="button"
             onClick={() => fetchDetail()}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#1E2942] bg-[#0B1020] text-xs font-mono text-[#dee1f9] hover:text-white cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-background text-xs font-mono text-foreground hover:text-foreground cursor-pointer"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             <span>Retry</span>
@@ -161,15 +161,15 @@ export function PostMortemPanel({
 
       {/* Loading state */}
       {loading && !detail && (
-        <div className="py-12 text-center text-xs font-mono text-[#9aa9ac]">
+        <div className="py-12 text-center text-xs font-mono text-muted-foreground">
           Loading experiment post-mortem analysis…
         </div>
       )}
 
       {/* State 1: Running experiment */}
       {detail && isRunning && (
-        <div className="p-4 rounded-xl bg-[#0B1020] border border-[#1E2942] text-xs font-mono text-[#9aa9ac] space-y-1">
-          <div className="text-white font-semibold">No report for running experiments</div>
+        <div className="p-4 rounded-xl bg-background border border-border text-xs font-mono text-muted-foreground space-y-1">
+          <div className="text-foreground font-semibold">No report for running experiments</div>
           <p>
             AI post-mortem analysis is synthesized automatically after the experiment finishes and telemetry snapshots are finalized.
           </p>
@@ -178,12 +178,12 @@ export function PostMortemPanel({
 
       {/* State 2: Finished but Report Pending */}
       {detail && isFinished && !report && !loading && (
-        <div className="p-5 rounded-xl bg-purple-950/20 border border-purple-500/40 text-xs font-mono space-y-3">
-          <div className="flex items-center gap-2 text-purple-300 font-bold uppercase tracking-wider">
+        <div className="p-5 rounded-xl bg-simulated/10 border border-simulated/40 text-xs font-mono space-y-3">
+          <div className="flex items-center gap-2 text-simulated font-bold uppercase tracking-wider">
             <RefreshCw className={`h-4 w-4 ${pollSeconds < 60 ? 'animate-spin' : ''}`} />
             <span>Report Pending</span>
           </div>
-          <p className="text-[#dee1f9]">
+          <p className="text-foreground">
             The experiment has ended, and telemetry snapshots are queued for AI worker synthesis.
             {pollSeconds < 60
               ? ` Actively checking for report (${pollSeconds}s / 60s max auto-poll)…`
@@ -195,7 +195,7 @@ export function PostMortemPanel({
               setPollSeconds(0);
               fetchDetail();
             }}
-            className="px-3 py-1.5 rounded-lg bg-purple-900/60 hover:bg-purple-800 text-purple-200 border border-purple-500/50 font-semibold cursor-pointer"
+            className="px-3 py-1.5 rounded-lg bg-simulated/10 hover:bg-simulated/10 text-simulated border border-simulated/50 font-semibold cursor-pointer"
           >
             Refresh Now
           </button>
@@ -207,12 +207,12 @@ export function PostMortemPanel({
         <div className="space-y-5">
           {/* Unconfirmed Circuit-Breaker / Retry Alert */}
           {meta?.isUnconfirmed && (
-            <div className="p-4 rounded-xl bg-amber-950/40 border border-amber-500/60 text-xs font-mono text-amber-200 space-y-1.5 shadow-sm">
-              <div className="flex items-center gap-2 text-amber-300 font-bold uppercase tracking-wider">
-                <ShieldAlert className="h-4 w-4 text-amber-400 shrink-0" />
+            <div className="p-4 rounded-xl bg-warning/10 border border-warning/60 text-xs font-mono text-warning space-y-1.5 shadow-sm">
+              <div className="flex items-center gap-2 text-warning font-bold uppercase tracking-wider">
+                <ShieldAlert className="h-4 w-4 text-warning shrink-0" />
                 <span>Unconfirmed Behavior Note (From Telemetry Facts)</span>
               </div>
-              <p className="leading-relaxed text-[#dee1f9]">
+              <p className="leading-relaxed text-foreground">
                 {meta.unconfirmedText}
               </p>
             </div>
@@ -220,29 +220,29 @@ export function PostMortemPanel({
 
           {/* Root Cause Assessment */}
           <div className="space-y-1.5">
-            <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-[#9aa9ac]">
+            <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-muted-foreground">
               Root Cause Assessment
             </h4>
-            <div className="p-4 rounded-xl bg-[#0B1020] border border-[#1E2942] text-xs font-mono text-[#dee1f9] leading-relaxed">
+            <div className="p-4 rounded-xl bg-background border border-border text-xs font-mono text-foreground leading-relaxed">
               {report.root_cause_summary}
             </div>
           </div>
 
           {/* Heuristic Confidence Gauge */}
-          <div className="p-4 rounded-xl bg-[#0B1020] border border-[#1E2942] space-y-2">
+          <div className="p-4 rounded-xl bg-background border border-border space-y-2">
             <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-[#9aa9ac] font-semibold uppercase tracking-wider">
+              <span className="text-muted-foreground font-semibold uppercase tracking-wider">
                 Heuristic Confidence
               </span>
-              <span className="text-white font-bold">{confidencePct}%</span>
+              <span className="text-foreground font-bold">{confidencePct}%</span>
             </div>
             <progress
               value={confidencePct}
               max="100"
               aria-label="Heuristic confidence score"
-              className="h-2 w-full rounded-full overflow-hidden bg-[#1E2942] accent-[#00e5ff]"
+              className="h-2 w-full rounded-full overflow-hidden bg-border accent-accent-ink"
             />
-            <p className="text-[10px] font-mono text-[#9aa9ac]">
+            <p className="text-[10px] font-mono text-muted-foreground">
               Model assessment, not a probability guarantee. Bounded by verified telemetry facts.
             </p>
           </div>
@@ -250,16 +250,16 @@ export function PostMortemPanel({
           {/* Evidence Bullets */}
           {meta?.regularBullets && meta.regularBullets.length > 0 && (
             <div className="space-y-2">
-              <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-[#9aa9ac]">
+              <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-muted-foreground">
                 Verified Evidence ({meta.regularBullets.length} points)
               </h4>
               <div className="space-y-1.5">
                 {meta.regularBullets.map((bullet, idx) => (
                   <div
                     key={idx}
-                    className="p-2.5 rounded-lg bg-[#0B1020] border border-[#1E2942] text-[11px] font-mono text-[#dee1f9] flex items-start gap-2"
+                    className="p-2.5 rounded-lg bg-background border border-border text-[11px] font-mono text-foreground flex items-start gap-2"
                   >
-                    <span className="text-[#00e5ff] font-bold mt-0.5">•</span>
+                    <span className="text-accent-ink font-bold mt-0.5">•</span>
                     <span className="break-words leading-relaxed">{bullet}</span>
                   </div>
                 ))}
@@ -269,35 +269,35 @@ export function PostMortemPanel({
 
           {/* Recommended Fix */}
           <div className="space-y-1.5">
-            <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-[#9aa9ac]">
+            <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-muted-foreground">
               Recommended Fix
             </h4>
-            <pre className="p-4 rounded-xl bg-[#080d1d] border border-[#1E2942] text-xs font-mono text-[#00e5ff] overflow-x-auto whitespace-pre-wrap leading-relaxed">
+            <pre className="terminal-panel p-4 rounded-lg bg-surface-dark border border-border text-xs font-mono text-foreground overflow-x-auto whitespace-pre-wrap leading-relaxed">
               <code>{report.recommended_fix}</code>
             </pre>
           </div>
 
           {/* Next Proposed Experiment */}
           {report.next_experiment_proposal && (
-            <div className="p-4 rounded-xl bg-purple-950/30 border border-purple-500/40 space-y-3 shadow-sm">
-              <div className="flex items-center justify-between border-b border-purple-500/20 pb-2">
+            <div className="p-4 rounded-xl bg-simulated/10 border border-simulated/40 space-y-3 shadow-sm">
+              <div className="flex items-center justify-between border-b border-simulated/20 pb-2">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-purple-400" />
-                  <span className="text-xs font-bold font-mono text-purple-200 uppercase tracking-wider">
+                  <Sparkles className="h-4 w-4 text-simulated" />
+                  <span className="text-xs font-bold font-mono text-simulated uppercase tracking-wider">
                     Next Proposed Experiment
                   </span>
                 </div>
-                <span className="text-[10px] font-mono text-purple-300 bg-purple-900/60 px-2 py-0.5 rounded border border-purple-500/40">
+                <span className="text-[10px] font-mono text-simulated bg-simulated/10 px-2 py-0.5 rounded border border-simulated/40">
                   {FAULT_LABELS[report.next_experiment_proposal.fault_type] || report.next_experiment_proposal.fault_type}
                 </span>
               </div>
 
-              <p className="text-xs text-[#dee1f9] font-mono leading-relaxed">
+              <p className="text-xs text-foreground font-mono leading-relaxed">
                 {report.next_experiment_proposal.rationale}
               </p>
 
               {report.next_experiment_proposal.suggested_parameters && (
-                <div className="p-2.5 rounded-lg bg-[#0B1020] border border-[#1E2942] text-[11px] font-mono text-[#9aa9ac]">
+                <div className="p-2.5 rounded-lg bg-background border border-border text-[11px] font-mono text-muted-foreground">
                   Suggested: {JSON.stringify(report.next_experiment_proposal.suggested_parameters)}
                 </div>
               )}
@@ -305,13 +305,13 @@ export function PostMortemPanel({
               <button
                 type="button"
                 onClick={handleLoadProposal}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white px-4 py-2.5 text-xs font-bold font-mono uppercase tracking-wider transition-all cursor-pointer shadow-md"
+                className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary hover:brightness-95 text-primary-foreground border border-accent-ink/30 px-4 py-2.5 text-xs font-bold font-mono uppercase tracking-wider transition-all cursor-pointer shadow-sm"
               >
                 <span>Load Proposal into Launcher</span>
                 <ArrowRight className="h-4 w-4" />
               </button>
 
-              <div className="flex items-center gap-1.5 text-[10px] font-mono text-purple-300/80 pt-1">
+              <div className="flex items-center gap-1.5 text-[10px] font-mono text-simulated/80 pt-1">
                 <Info className="h-3 w-3 shrink-0" />
                 <span>AI suggestions are advisory and need your approval. Never launches directly.</span>
               </div>

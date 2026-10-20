@@ -41,21 +41,21 @@ export function StatusBadge({
   const norm = normalizeVariant(variant, status);
 
   const variantStyles = {
-    healthy: 'bg-emerald-950/50 text-emerald-300 border-emerald-800/40',
-    degraded: 'bg-amber-950/60 text-amber-300 border-amber-800/60',
-    breached: 'bg-red-950/60 text-red-300 border-red-800/60 font-bold',
-    info: 'bg-[#0c2238] text-[#00e5ff] border-[#00e5ff]/30',
-    ai: 'bg-purple-950/50 text-purple-300 border-purple-800/40',
-    neutral: 'bg-slate-800/60 text-slate-300 border-slate-700/50',
+    healthy: 'bg-success/10 text-success border-success/40',
+    degraded: 'bg-warning/10 text-warning border-warning/60',
+    breached: 'bg-destructive/10 text-destructive border-destructive/60 font-bold',
+    info: 'bg-muted text-accent-ink border-accent-ink/30',
+    ai: 'bg-simulated/10 text-simulated border-simulated/40',
+    neutral: 'bg-muted/60 text-foreground border-border/50',
   }[norm];
 
   const dotColors = {
-    healthy: 'bg-emerald-400 glow-dot-emerald',
-    degraded: 'bg-amber-400 glow-dot-amber',
-    breached: 'bg-red-400 glow-dot-red',
-    info: 'bg-[#00e5ff] shadow-[0_0_8px_#00e5ff]',
-    ai: 'bg-purple-400',
-    neutral: 'bg-slate-400',
+    healthy: 'bg-primary glow-dot-emerald',
+    degraded: 'bg-warning glow-dot-amber',
+    breached: 'bg-destructive glow-dot-red',
+    info: 'bg-accent-ink',
+    ai: 'bg-simulated',
+    neutral: 'bg-muted',
   }[norm];
 
   const sizeClasses = size === 'md'

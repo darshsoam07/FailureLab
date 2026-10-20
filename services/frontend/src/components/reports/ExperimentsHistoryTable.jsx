@@ -31,12 +31,12 @@ export function ExperimentsHistoryTable({
   const hasNext = pagination ? pagination.hasNext : experiments.length >= limit;
 
   return (
-    <div className="rounded-xl bg-[#121A2F] border border-[#1E2942] p-5 shadow-md space-y-4">
+    <div className="rounded-xl bg-surface border border-border p-5 shadow-md space-y-4">
       {/* Controls Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#1E2942]">
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-border">
         <div className="flex items-center gap-2">
-          <Layers className="h-4 w-4 text-[#00e5ff]" />
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
+          <Layers className="h-4 w-4 text-accent-ink" />
+          <h3 className="text-sm font-bold text-foreground uppercase tracking-wider font-mono">
             Audit Trail ({pageLabel} · {experiments.length} loaded)
           </h3>
         </div>
@@ -44,12 +44,12 @@ export function ExperimentsHistoryTable({
         <div className="flex flex-wrap items-center gap-2">
           {/* Status Filter */}
           <div className="flex items-center gap-1.5 text-xs font-mono">
-            <Filter className="h-3.5 w-3.5 text-[#9aa9ac]" />
+            <Filter className="h-3.5 w-3.5 text-muted-foreground" />
             <select
               aria-label="Filter status of loaded experiments"
               value={statusFilter}
               onChange={(e) => onChangeStatusFilter(e.target.value)}
-              className="rounded-lg border border-[#1E2942] bg-[#0B1020] px-2.5 py-1 text-xs text-[#dee1f9] font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00e5ff] cursor-pointer"
+              className="rounded-lg border border-border bg-background px-2.5 py-1 text-xs text-foreground font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring cursor-pointer"
             >
               <option value="all">All statuses (loaded page)</option>
               <option value="COMPLETED">Completed</option>
@@ -63,7 +63,7 @@ export function ExperimentsHistoryTable({
           <button
             type="button"
             onClick={onToggleSortDirection}
-            className="flex items-center gap-1 rounded-lg border border-[#1E2942] bg-[#0B1020] px-2.5 py-1 text-xs text-[#9aa9ac] hover:text-white font-mono transition-colors cursor-pointer"
+            className="flex items-center gap-1 rounded-lg border border-border bg-background px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground font-mono transition-colors cursor-pointer"
             title="Toggle sort direction by start time"
           >
             <ArrowUpDown className="h-3.5 w-3.5" />
@@ -72,7 +72,7 @@ export function ExperimentsHistoryTable({
         </div>
       </div>
 
-      <div className="text-[11px] font-mono text-[#9aa9ac]">
+      <div className="text-[11px] font-mono text-muted-foreground">
         Status filter applies to loaded page only. Peak P95 is derived from detail snapshots of the selected drill.
       </div>
 
@@ -86,7 +86,7 @@ export function ExperimentsHistoryTable({
 
       {/* Loading Indicator */}
       {loading && !experiments.length && (
-        <div className="py-12 text-center text-xs font-mono text-[#9aa9ac]">
+        <div className="py-12 text-center text-xs font-mono text-muted-foreground">
           Loading experiment records…
         </div>
       )}
@@ -102,9 +102,9 @@ export function ExperimentsHistoryTable({
 
       {/* Desktop Table View (>= 640px) */}
       {experiments.length > 0 && (
-        <div className="hidden sm:block overflow-x-auto">
-          <table className="w-full text-left text-xs font-mono">
-            <thead className="bg-[#0B1020] text-[#9aa9ac] border-b border-[#1E2942] uppercase text-[10px] tracking-wider select-none">
+        <div className="hidden sm:block overflow-x-auto" role="region" aria-label="Experiment history table; scroll horizontally on narrow screens" tabIndex={0}>
+          <table className="w-full whitespace-nowrap text-left text-xs font-mono">
+            <thead className="bg-background text-muted-foreground border-b border-border uppercase text-[10px] tracking-wider select-none">
               <tr>
                 <th scope="col" className="py-2.5 px-3">Run ID</th>
                 <th scope="col" className="py-2.5 px-3">Fault Type</th>
@@ -114,7 +114,7 @@ export function ExperimentsHistoryTable({
                 <th scope="col" className="py-2.5 px-3 text-right">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1E2942]/60 text-[#dee1f9]">
+            <tbody className="divide-y divide-border/60 text-foreground">
               {experiments.map((exp) => {
                 const row = formatRowData(exp, selectedDetail);
                 const isSelected = selectedId === row.id;
@@ -132,25 +132,25 @@ export function ExperimentsHistoryTable({
                         onSelectExperiment(row.id);
                       }
                     }}
-                    className={`transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#00e5ff] ${
+                    className={`transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus-ring ${
                       isSelected
-                        ? 'bg-[#00e5ff]/10 font-semibold'
-                        : 'hover:bg-[#0B1020]/70'
+                        ? 'bg-primary/10 font-semibold'
+                        : 'hover:bg-background/70'
                     }`}
                   >
-                    <td className="py-2.5 px-3 font-mono text-[#00e5ff] font-medium" title={row.id}>
+                    <td className="py-2.5 px-3 font-mono text-accent-ink font-medium" title={row.id}>
                       {row.shortId}
                     </td>
-                    <td className="py-2.5 px-3 text-white">
+                    <td className="py-2.5 px-3 text-foreground">
                       {row.faultLabel}
                     </td>
-                    <td className="py-2.5 px-3 text-[#9aa9ac]">
+                    <td className="py-2.5 px-3 text-muted-foreground">
                       {row.startedFormatted}
                     </td>
-                    <td className="py-2.5 px-3 text-[#9aa9ac]">
+                    <td className="py-2.5 px-3 text-muted-foreground">
                       {row.durationFormatted}
                     </td>
-                    <td className="py-2.5 px-3 text-amber-300 font-semibold" title={isSelected ? 'Peak P95 from telemetry snapshots' : 'Select row to inspect peak P95'}>
+                    <td className="py-2.5 px-3 text-warning font-semibold" title={isSelected ? 'Peak P95 from telemetry snapshots' : 'Select row to inspect peak P95'}>
                       {row.peakP95}
                     </td>
                     <td className="py-2.5 px-3 text-right">
@@ -187,14 +187,14 @@ export function ExperimentsHistoryTable({
                     onSelectExperiment(row.id);
                   }
                 }}
-                className={`p-3.5 rounded-xl border text-xs font-mono transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#00e5ff] ${
+                className={`p-3.5 rounded-xl border text-xs font-mono transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus-ring ${
                   isSelected
-                    ? 'bg-[#00e5ff]/10 border-[#00e5ff]'
-                    : 'bg-[#0B1020] border-[#1E2942] hover:border-[#22304D]'
+                    ? 'bg-primary/10 border-accent-ink'
+                    : 'bg-background border-border hover:border-border'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-[#00e5ff] font-semibold" title={row.id}>
+                  <span className="text-accent-ink font-semibold" title={row.id}>
                     {row.shortId}
                   </span>
                   <ExperimentStatusBadge
@@ -202,19 +202,19 @@ export function ExperimentsHistoryTable({
                     abortReason={exp.abort_reason}
                   />
                 </div>
-                <div className="text-white font-semibold text-sm mb-1">{row.faultLabel}</div>
-                <div className="grid grid-cols-2 gap-2 text-[11px] text-[#9aa9ac] border-t border-[#1E2942]/60 pt-2 mt-2">
+                <div className="text-foreground font-semibold text-sm mb-1">{row.faultLabel}</div>
+                <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground border-t border-border/60 pt-2 mt-2">
                   <div>
                     <span>Started: </span>
-                    <span className="text-[#dee1f9]">{row.startedFormatted}</span>
+                    <span className="text-foreground">{row.startedFormatted}</span>
                   </div>
                   <div>
                     <span>Duration: </span>
-                    <span className="text-[#dee1f9]">{row.durationFormatted}</span>
+                    <span className="text-foreground">{row.durationFormatted}</span>
                   </div>
                   <div>
                     <span>Peak P95: </span>
-                    <span className="text-amber-300 font-semibold">{row.peakP95}</span>
+                    <span className="text-warning font-semibold">{row.peakP95}</span>
                   </div>
                 </div>
               </div>
@@ -224,19 +224,19 @@ export function ExperimentsHistoryTable({
       )}
 
       {/* Pagination Footer */}
-      <div className="flex items-center justify-between pt-3 border-t border-[#1E2942] text-xs font-mono text-[#9aa9ac]">
+      <div className="flex items-center justify-between pt-3 border-t border-border text-xs font-mono text-muted-foreground">
         <button
           type="button"
           aria-label="Previous page"
           disabled={!hasPrev}
           onClick={onPrevPage}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#1E2942] bg-[#0B1020] hover:text-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-background hover:text-foreground transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           <span>Previous</span>
         </button>
 
-        <span className="font-semibold text-[#dee1f9]">
+        <span className="font-semibold text-foreground">
           {pageLabel}
         </span>
 
@@ -245,7 +245,7 @@ export function ExperimentsHistoryTable({
           aria-label="Next page"
           disabled={!hasNext}
           onClick={onNextPage}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#1E2942] bg-[#0B1020] hover:text-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-background hover:text-foreground transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <span>Next</span>
           <ArrowRight className="h-3.5 w-3.5" />

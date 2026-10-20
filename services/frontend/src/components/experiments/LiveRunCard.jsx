@@ -15,26 +15,26 @@ function TimelineTooltip({ active, payload, label, p95Ceiling, errorCeilingPct }
   const isErrorBreach = data.errorRatePct > errorCeilingPct;
 
   return (
-    <div className="rounded-lg bg-[#0B1020]/95 border border-[#1E2942] p-3 text-xs font-mono shadow-xl space-y-1">
-      <div className="text-[#9aa9ac] border-b border-[#1E2942] pb-1 flex justify-between gap-4">
+    <div className="rounded-lg bg-background/95 border border-border p-3 text-xs font-mono shadow-xl space-y-1">
+      <div className="text-muted-foreground border-b border-border pb-1 flex justify-between gap-4">
         <span>Snapshot #{data.index}</span>
-        <span className="text-white">{data.timeFormatted}</span>
+        <span className="text-foreground">{data.timeFormatted}</span>
       </div>
       <div className="flex justify-between gap-4 pt-1">
-        <span className="text-[#00e5ff]">P95 Latency:</span>
-        <span className={`font-bold ${isP95Breach ? 'text-red-400' : 'text-white'}`}>
+        <span className="text-accent-ink">P95 Latency:</span>
+        <span className={`font-bold ${isP95Breach ? 'text-destructive' : 'text-foreground'}`}>
           {data.p95}ms {isP95Breach && '(BREACH)'}
         </span>
       </div>
       <div className="flex justify-between gap-4">
-        <span className="text-[#f97316]">Error Rate:</span>
-        <span className={`font-bold ${isErrorBreach ? 'text-red-400' : 'text-white'}`}>
+        <span className="text-chart-secondary">Error Rate:</span>
+        <span className={`font-bold ${isErrorBreach ? 'text-destructive' : 'text-foreground'}`}>
           {data.errorRatePct}% {isErrorBreach && '(BREACH)'}
         </span>
       </div>
-      <div className="flex justify-between gap-4 text-[#9aa9ac]">
+      <div className="flex justify-between gap-4 text-muted-foreground">
         <span>Requests (total/failed):</span>
-        <span className="text-white">{data.totalRequests} / {data.failedRequests}</span>
+        <span className="text-foreground">{data.totalRequests} / {data.failedRequests}</span>
       </div>
     </div>
   );
@@ -53,7 +53,7 @@ function BreachDot(props) {
         cx={cx}
         cy={cy}
         r={7}
-        fill="#ef4444"
+        fill="var(--destructive)"
         opacity={0.3}
         className="animate-ping"
       />
@@ -61,8 +61,8 @@ function BreachDot(props) {
         cx={cx}
         cy={cy}
         r={4.5}
-        fill="#ef4444"
-        stroke="#ffffff"
+        fill="var(--destructive)"
+        stroke="var(--foreground)"
         strokeWidth={1.5}
       />
     </g>
@@ -96,12 +96,12 @@ export function LiveRunCard({
 
   if (!experiment) {
     return (
-      <div className="rounded-xl bg-[#121A2F] border border-[#1E2942] p-8 shadow-md text-center">
-        <Activity className="h-10 w-10 text-[#9aa9ac] mx-auto mb-3 opacity-60" />
-        <h3 className="text-sm font-bold text-white font-mono uppercase tracking-wider">
+      <div className="rounded-xl bg-surface border border-border p-8 shadow-md text-center">
+        <Activity className="h-10 w-10 text-muted-foreground mx-auto mb-3 opacity-60" />
+        <h3 className="text-sm font-bold text-foreground font-mono uppercase tracking-wider">
           No Experiment Executed Yet
         </h3>
-        <p className="text-xs text-[#9aa9ac] mt-1 max-w-sm mx-auto">
+        <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
           Configure and launch a fault from the launcher to view live telemetry, watchdog tripwires, and event logs.
         </p>
       </div>
@@ -196,12 +196,12 @@ export function LiveRunCard({
   const maxError = timelineData.reduce((acc, d) => Math.max(acc, d.errorRatePct), Math.max(10, errorCeilingPct * 2));
 
   return (
-    <div className="rounded-xl bg-[#121A2F] border border-[#1E2942] p-5 shadow-md space-y-6">
+    <div className="terminal-panel rounded-lg bg-surface-dark border border-border p-5 shadow-sm space-y-6">
       {/* Header: Status, ID, Duration & Emergency Stop */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[#1E2942]">
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-border">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
-            <h3 className="text-[17px] font-bold text-white tracking-tight">
+            <h3 className="text-[17px] font-bold text-foreground tracking-tight">
               {isRunning ? 'Live Experiment Telemetry' : 'Experiment Telemetry Summary'}
             </h3>
             <ExperimentStatusBadge
@@ -210,17 +210,17 @@ export function LiveRunCard({
               abortReason={experiment.abort_reason}
             />
           </div>
-          <div className="flex flex-wrap items-center gap-3 text-xs font-mono text-[#9aa9ac]">
+          <div className="flex flex-wrap items-center gap-3 text-xs font-mono text-muted-foreground">
             <span>
-              ID: <span className="text-[#00e5ff] font-semibold">{experiment.id}</span>
+              ID: <span className="text-accent-ink font-semibold">{experiment.id}</span>
             </span>
             <span>·</span>
             <span>{experiment.name}</span>
             {durationLabel && (
               <>
                 <span>·</span>
-                <span className="text-white flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5 text-[#9aa9ac]" />
+                <span className="text-foreground flex items-center gap-1">
+                  <Clock className="h-3.5 w-3.5 text-muted-foreground" />
                   {durationLabel}
                 </span>
               </>
@@ -236,8 +236,8 @@ export function LiveRunCard({
             disabled={!isRunning}
             className={`px-3.5 py-2 rounded-lg text-xs font-bold font-mono uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer disabled:cursor-not-allowed ${
               isRunning
-                ? 'bg-[#b91c1c] hover:bg-[#991b1b] text-white shadow-lg glow-red'
-                : 'bg-[#1E2942] text-[#9aa9ac] border border-[#22304D] opacity-60'
+                ? 'bg-danger-button hover:brightness-110 text-on-destructive shadow-sm'
+                : 'bg-border text-muted-foreground border border-border opacity-60'
             }`}
           >
             <Square className="h-3.5 w-3.5 fill-current" />
@@ -248,11 +248,11 @@ export function LiveRunCard({
 
       {/* Detail Polling Error or Stale State Banner */}
       {detailError && (
-        <div role="alert" className="p-3 rounded-lg bg-red-950/40 border border-red-500/50 text-xs font-mono text-red-200 flex items-start gap-2">
-          <AlertTriangle className="h-4 w-4 text-red-400 shrink-0 mt-0.5" />
+        <div role="alert" className="p-3 rounded-lg bg-destructive/10 border border-destructive/50 text-xs font-mono text-destructive flex items-start gap-2">
+          <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
           <div>
             <span className="font-bold">Telemetry Sync Degraded:</span> {detailError}
-            <div className="text-[11px] text-red-300/80 mt-0.5">
+            <div className="text-[11px] text-destructive/80 mt-0.5">
               Displaying last known snapshot data while retaining connection state.
             </div>
           </div>
@@ -260,15 +260,15 @@ export function LiveRunCard({
       )}
 
       {/* Watchdog Guardrails & Snapshot Freshness Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-xl bg-[#0B1020] border border-[#1E2942]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-xl bg-background border border-border">
         {/* Watchdog Status */}
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono uppercase text-[#9aa9ac] tracking-wider flex items-center gap-1">
-              <Shield className="h-3.5 w-3.5 text-amber-400" />
+            <span className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider flex items-center gap-1">
+              <Shield className="h-3.5 w-3.5 text-warning" />
               Watchdog Tripwire (3 Breaches)
             </span>
-            <span className="text-xs font-bold font-mono text-white">
+            <span className="text-xs font-bold font-mono text-foreground">
               {consecutiveBreaches}/3
             </span>
           </div>
@@ -283,31 +283,31 @@ export function LiveRunCard({
                     aria-hidden="true"
                     className={`h-3 w-3 rounded-full transition-all ${
                       isTripped
-                        ? 'bg-red-500 shadow-[0_0_8px_#ef4444]'
-                        : 'bg-[#1E2942] border border-[#22304D]'
+                        ? 'bg-destructive'
+                        : 'bg-border border border-border'
                     }`}
                   />
                 );
               })}
             </div>
-            <span className="text-[10px] font-mono text-[#9aa9ac] truncate">
+            <span className="text-[10px] font-mono text-muted-foreground truncate">
               {isBreaching ? 'SLO breach streak active' : 'Guardrails normal'}
             </span>
           </div>
 
-          <p className="text-[10px] font-mono text-[#9aa9ac] pt-0.5">
+          <p className="text-[10px] font-mono text-muted-foreground pt-0.5">
             derived from snapshots; the server remains the authority for the abort decision
           </p>
         </div>
 
         {/* Snapshot Freshness */}
-        <div className="space-y-1 sm:border-l sm:border-[#1E2942] sm:pl-3">
+        <div className="space-y-1 sm:border-l sm:border-border sm:pl-3">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono uppercase text-[#9aa9ac] tracking-wider flex items-center gap-1">
-              <Radio className={`h-3.5 w-3.5 ${isRunning ? 'text-[#00e5ff] animate-pulse' : 'text-[#9aa9ac]'}`} />
+            <span className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider flex items-center gap-1">
+              <Radio className={`h-3.5 w-3.5 ${isRunning ? 'text-accent-ink animate-pulse' : 'text-muted-foreground'}`} />
               Snapshot Freshness
             </span>
-            <span className="text-xs font-mono text-[#9aa9ac]">
+            <span className="text-xs font-mono text-muted-foreground">
               {snapshots.length} recorded
             </span>
           </div>
@@ -316,27 +316,27 @@ export function LiveRunCard({
             {isRunning ? (
               snapshotSecondsAgo !== null ? (
                 isStreamDelayed ? (
-                  <span className="text-amber-400 font-semibold flex items-center gap-1">
+                  <span className="text-warning font-semibold flex items-center gap-1">
                     <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                     Stream delayed: last snapshot {snapshotSecondsAgo}s ago
                   </span>
                 ) : (
-                  <span className="text-[#00e5ff] flex items-center gap-1">
-                    <span className="h-2 w-2 rounded-full bg-[#00e5ff] glow-dot-cyan" />
+                  <span className="text-accent-ink flex items-center gap-1">
+                    <span className="h-2 w-2 rounded-full bg-primary glow-dot-cyan" />
                     Live stream: last snapshot {snapshotSecondsAgo}s ago
                   </span>
                 )
               ) : (
-                <span className="text-[#9aa9ac]">Waiting for initial watchdog snapshot…</span>
+                <span className="text-muted-foreground">Waiting for initial watchdog snapshot…</span>
               )
             ) : (
-              <span className="text-[#9aa9ac]">
+              <span className="text-muted-foreground">
                 Experiment finished · {snapshots.length} snapshots archived
               </span>
             )}
           </div>
 
-          <p className="text-[10px] font-mono text-[#9aa9ac] pt-0.5">
+          <p className="text-[10px] font-mono text-muted-foreground pt-0.5">
             The controller aborts automatically after 3 consecutive SLO breaches
           </p>
         </div>
@@ -344,49 +344,49 @@ export function LiveRunCard({
 
       {/* Timeline Chart Area */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs font-mono">
-          <span className="font-bold text-white uppercase tracking-wider">
+        <div className="flex flex-wrap gap-2 items-center justify-between text-xs font-mono">
+          <span className="font-bold text-foreground uppercase tracking-wider">
             Telemetry Snapshot Timeline
           </span>
-          <div className="flex items-center gap-4 text-[10px]">
-            <span className="flex items-center gap-1.5 text-[#00e5ff]">
-              <span className="h-2 w-2 rounded-full bg-[#00e5ff]" />
+          <div className="flex flex-wrap items-center gap-3 text-[10px]">
+            <span className="flex items-center gap-1.5 text-accent-ink">
+              <span className="h-2 w-2 rounded-full bg-primary" />
               P95 Latency (ms)
             </span>
-            <span className="flex items-center gap-1.5 text-[#f97316]">
-              <span className="h-2 w-2 rounded-full bg-[#f97316]" />
+            <span className="flex items-center gap-1.5 text-chart-secondary">
+              <span className="h-2 w-2 rounded-full bg-chart-secondary" />
               Error Rate (%)
             </span>
-            <span className="flex items-center gap-1.5 text-red-400">
-              <span className="h-2 w-2 rounded-full bg-red-500" />
+            <span className="flex items-center gap-1.5 text-destructive">
+              <span className="h-2 w-2 rounded-full bg-danger-button" />
               SLO Breach
             </span>
           </div>
         </div>
 
         {timelineData.length === 0 ? (
-          <div className="h-56 rounded-xl bg-[#0B1020] border border-[#1E2942] flex flex-col items-center justify-center p-6 text-center">
+          <div className="h-56 rounded-xl bg-background border border-border flex flex-col items-center justify-center p-6 text-center">
             {isRunning ? (
               <>
-                <Radio className="h-8 w-8 text-[#00e5ff] animate-pulse mb-2" />
-                <span className="text-xs font-mono text-[#00e5ff]">
+                <Radio className="h-8 w-8 text-accent-ink animate-pulse mb-2" />
+                <span className="text-xs font-mono text-accent-ink">
                   Waiting for first telemetry snapshot from controller watchdog…
                 </span>
-                <span className="text-[11px] font-mono text-[#9aa9ac] mt-1">
+                <span className="text-[11px] font-mono text-muted-foreground mt-1">
                   Snapshots are evaluated every 2 seconds
                 </span>
               </>
             ) : (
               <>
-                <Activity className="h-8 w-8 text-[#9aa9ac] mb-2 opacity-50" />
-                <span className="text-xs font-mono text-[#9aa9ac]">
+                <Activity className="h-8 w-8 text-muted-foreground mb-2 opacity-50" />
+                <span className="text-xs font-mono text-muted-foreground">
                   No snapshots captured for this experiment
                 </span>
               </>
             )}
           </div>
         ) : (
-          <div className="rounded-xl bg-[#0B1020] border border-[#1E2942] p-3 pt-4">
+          <div className="rounded-xl bg-background border border-border p-3 pt-4">
             <div className="h-56 w-full" role="region" aria-label="Experiment latency and error-rate timeline">
               <p className="sr-only">{timelineData.length} recorded snapshots; P95 latency in milliseconds and error rate in percent. Consecutive breaches: {consecutiveBreaches} of 3. Exact snapshot values appear in the event log below.</p>
               <ResponsiveContainer width="100%" height="100%">
@@ -396,21 +396,21 @@ export function LiveRunCard({
                 >
                   <defs>
                     <linearGradient id="p95Grad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#00e5ff" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#00e5ff" stopOpacity={0.0} />
+                      <stop offset="5%" stopColor="var(--accent-ink)" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="var(--accent-ink)" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid stroke="#1E2942" strokeDasharray="3 3" vertical={false} />
+                  <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
                   <XAxis
                     dataKey="timeFormatted"
-                    stroke="#9aa9ac"
-                    tick={{ fill: '#9aa9ac', fontSize: 10 }}
+                    stroke="var(--muted-foreground)"
+                    tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }}
                     tickLine={false}
                   />
                   <YAxis
                     yAxisId="latency"
-                    stroke="#9aa9ac"
-                    tick={{ fill: '#9aa9ac', fontSize: 10 }}
+                    stroke="var(--muted-foreground)"
+                    tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }}
                     domain={[0, Math.ceil(maxP95)]}
                     tickLine={false}
                     unit="ms"
@@ -418,8 +418,8 @@ export function LiveRunCard({
                   <YAxis
                     yAxisId="error"
                     orientation="right"
-                    stroke="#f97316"
-                    tick={{ fill: '#f97316', fontSize: 10 }}
+                    stroke="var(--chart-secondary)"
+                    tick={{ fill: 'var(--chart-secondary)', fontSize: 10 }}
                     domain={[0, Math.ceil(maxError)]}
                     tickLine={false}
                     unit="%"
@@ -437,11 +437,11 @@ export function LiveRunCard({
                   <ReferenceLine
                     yAxisId="latency"
                     y={p95Ceiling}
-                    stroke="#ef4444"
+                    stroke="var(--destructive)"
                     strokeDasharray="3 3"
                     label={{
                       value: `P95 SLO (${p95Ceiling}ms)`,
-                      fill: '#ef4444',
+                      fill: 'var(--destructive)',
                       fontSize: 9,
                       position: 'insideTopRight',
                     }}
@@ -449,11 +449,11 @@ export function LiveRunCard({
                   <ReferenceLine
                     yAxisId="error"
                     y={errorCeilingPct}
-                    stroke="#f97316"
+                    stroke="var(--chart-secondary)"
                     strokeDasharray="3 3"
                     label={{
                       value: `Err SLO (${errorCeilingPct}%)`,
-                      fill: '#f97316',
+                      fill: 'var(--chart-secondary)',
                       fontSize: 9,
                       position: 'insideBottomRight',
                     }}
@@ -463,11 +463,11 @@ export function LiveRunCard({
                   {faultMarker && (
                     <ReferenceLine
                       x={faultMarker.x}
-                      stroke="#00e5ff"
+                      stroke="var(--accent-ink)"
                       strokeDasharray="2 2"
                       label={{
                         value: faultMarker.label,
-                        fill: '#00e5ff',
+                        fill: 'var(--accent-ink)',
                         fontSize: 9,
                         position: 'insideTopLeft',
                       }}
@@ -478,7 +478,7 @@ export function LiveRunCard({
                     yAxisId="latency"
                     type="monotone"
                     dataKey="p95"
-                    stroke="#00e5ff"
+                    stroke="var(--accent-ink)"
                     strokeWidth={2}
                     fillOpacity={1}
                     fill="url(#p95Grad)"
@@ -488,7 +488,7 @@ export function LiveRunCard({
                     yAxisId="error"
                     type="monotone"
                     dataKey="errorRatePct"
-                    stroke="#f97316"
+                    stroke="var(--chart-secondary)"
                     strokeWidth={1.5}
                     dot={false}
                   />
@@ -502,10 +502,10 @@ export function LiveRunCard({
       {/* Derived Event Log (Newest First) */}
       <div className="space-y-2">
         <div className="flex items-center justify-between text-xs font-mono">
-          <span className="font-bold text-white uppercase tracking-wider">
+          <span className="font-bold text-foreground uppercase tracking-wider">
             Derived Experiment Event Log
           </span>
-          <span className="text-[10px] text-[#9aa9ac]">
+          <span className="text-[10px] text-muted-foreground">
             {eventLog.length} events · Newest first
           </span>
         </div>
@@ -513,10 +513,10 @@ export function LiveRunCard({
         <div
           role="log"
           aria-label="Experiment event log"
-          className="max-h-52 overflow-y-auto space-y-1.5 p-3 rounded-xl bg-[#080d1d] border border-[#1E2942] font-mono text-xs divide-y divide-[#1E2942]/40"
+          className="max-h-52 overflow-y-auto space-y-1.5 p-3 rounded-xl bg-muted border border-border font-mono text-xs divide-y divide-border/40"
         >
           {eventLog.length === 0 ? (
-            <p className="text-[#9aa9ac] text-center py-4">No events logged yet</p>
+            <p className="text-muted-foreground text-center py-4">No events logged yet</p>
           ) : (
             eventLog.map(evt => {
               const timeStr = new Date(evt.timestamp).toTimeString().slice(0, 8);
@@ -527,17 +527,17 @@ export function LiveRunCard({
                 <div
                   key={evt.id}
                   className={`pt-1.5 first:pt-0 flex items-start gap-2.5 ${
-                    isBreach ? 'text-red-300' : isSuccess ? 'text-emerald-300' : 'text-[#dee1f9]'
+                    isBreach ? 'text-destructive' : isSuccess ? 'text-success' : 'text-foreground'
                   }`}
                 >
-                  <span className="text-[#9aa9ac] shrink-0">{timeStr}</span>
+                  <span className="text-muted-foreground shrink-0">{timeStr}</span>
                   <span
                     className={`px-1.5 py-0.2 rounded text-[10px] uppercase font-bold shrink-0 ${
                       isBreach
-                        ? 'bg-red-950/60 text-red-400 border border-red-800/60'
+                        ? 'bg-destructive/10 text-destructive border border-destructive/60'
                         : isSuccess
-                        ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/60'
-                        : 'bg-[#1E2942] text-[#00e5ff] border border-[#1E2942]'
+                        ? 'bg-success/10 text-success border border-success/60'
+                        : 'bg-border text-accent-ink border border-border'
                     }`}
                   >
                     {evt.type}

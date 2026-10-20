@@ -20,17 +20,17 @@ export function Card({
 }) {
   const glowClasses = {
     none: '',
-    cyan: 'glow-cyan border-[#00e5ff]/40',
-    'cyan-lg': 'glow-cyan-lg border-[#00e5ff]/60',
-    red: 'glow-red border-red-500/80',
-    amber: 'glow-amber border-amber-500/70',
+    cyan: 'glow-cyan border-accent-ink/40',
+    'cyan-lg': 'glow-cyan-lg border-accent-ink/60',
+    red: 'glow-red border-destructive/80',
+    amber: 'glow-amber border-warning/70',
   }[glow] || '';
 
-  const hoverClass = hover ? 'hover:border-[#22304D] transition-colors' : '';
+  const hoverClass = hover ? 'hover:border-border transition-colors' : '';
 
   return (
     <Component
-      className={`rounded-xl bg-[#121A2F] border border-[#1E2942] p-4 md:p-5 shadow-md ${hoverClass} ${glowClasses} ${className}`}
+      className={`rounded-lg bg-surface border border-border p-4 md:p-5 shadow-sm ${hoverClass} ${glowClasses} ${className}`}
       {...rest}
     >
       {children}

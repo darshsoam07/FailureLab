@@ -42,6 +42,18 @@ test('experiments handles unavailable catalog and no experiment', async () => {
   const markup = await html('experiments/ExperimentsView', 'ExperimentsView', { catalog: null, activeExperiment: null, latestExperiment: null, blocked: true });
   assert.match(markup, /unknown/);
 });
+test('launcher default duration and SLO are valid native input steps', async () => {
+  const markup = await html('experiments/ExperimentsView', 'ExperimentsView', {
+    catalog: { duration_seconds: { minimum: 1, maximum: 3600 }, experiments: [] },
+    activeExperiment: null, latestExperiment: null, blocked: false,
+  });
+  const duration = markup.match(/<input[^>]*id="duration-input"[^>]*>/)[0];
+  const ceiling = markup.match(/<input[^>]*id="slo-p95"[^>]*>/)[0];
+  assert.match(duration, /step="1"/);
+  assert.match(duration, /value="60"/);
+  assert.match(ceiling, /step="any"/);
+  assert.match(ceiling, /value="500"/);
+});
 test('topology handles missing probes without healthy claims', async () => {
   const markup = await html('topology/TopologyOverview', 'TopologyOverview', { stale: true, onNavigate: () => {} });
   assert.match(markup, /unknown/i); assert.doesNotMatch(markup, /Real proxy connected/);

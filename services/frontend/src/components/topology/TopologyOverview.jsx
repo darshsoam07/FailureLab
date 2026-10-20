@@ -60,19 +60,19 @@ export function TopologyOverview({
       {/* Page Header */}
       <SectionHeader
         title="Distributed System Topology"
-        icon={<Network className="h-5 w-5 text-[#00e5ff]" />}
+        icon={<Network className="h-5 w-5 text-accent-ink" />}
         subtitle="Live architectural service graph, dependency probes, and fault injection path"
         actions={
           <div className="flex items-center gap-2">
             {/* View Mode Toggle on Desktop */}
-            <div className="hidden xl:flex items-center rounded-lg border border-[#1E2942] bg-[#0B1020] p-0.5 text-xs font-mono">
+            <div className="hidden xl:flex items-center rounded-lg border border-border bg-background p-0.5 text-xs font-mono">
               <button
                 type="button"
                 onClick={() => setDesktopViewMode('graph')}
                 className={`flex items-center gap-1 px-2.5 py-1 rounded cursor-pointer transition-colors ${
                   desktopViewMode === 'graph'
-                    ? 'bg-[#1E2942] text-white font-semibold'
-                    : 'text-[#9aa9ac] hover:text-white'
+                    ? 'bg-border text-foreground font-semibold'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <GitBranch className="h-3.5 w-3.5" />
@@ -83,8 +83,8 @@ export function TopologyOverview({
                 onClick={() => setDesktopViewMode('list')}
                 className={`flex items-center gap-1 px-2.5 py-1 rounded cursor-pointer transition-colors ${
                   desktopViewMode === 'list'
-                    ? 'bg-[#1E2942] text-white font-semibold'
-                    : 'text-[#9aa9ac] hover:text-white'
+                    ? 'bg-border text-foreground font-semibold'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <LayoutGrid className="h-3.5 w-3.5" />
@@ -96,7 +96,7 @@ export function TopologyOverview({
             <button
               type="button"
               onClick={() => onNavigate('experiments')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#00e5ff]/10 text-[#00e5ff] border border-[#00e5ff]/30 text-xs font-mono font-semibold hover:bg-[#00e5ff]/20 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-accent-ink border border-accent-ink/30 text-xs font-mono font-semibold hover:bg-primary/20 transition-colors cursor-pointer"
             >
               <Flame className="h-3.5 w-3.5" />
               <span>Inject Fault</span>

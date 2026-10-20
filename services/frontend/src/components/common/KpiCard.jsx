@@ -31,23 +31,23 @@ export function KpiCard({
   const isDegraded = status === 'degraded';
 
   const cardBorderClasses = isBreached
-    ? 'border-red-500/80 glow-red'
+    ? 'border-destructive/80 glow-red'
     : isDegraded
-    ? 'border-amber-500/70 glow-amber'
-    : 'border-[#1E2942]';
+    ? 'border-warning/70 glow-amber'
+    : 'border-border';
 
   const valueColor = isBreached
-    ? 'text-red-400'
+    ? 'text-destructive'
     : isDegraded
-    ? 'text-amber-300'
-    : 'text-[#dee1f9]';
+    ? 'text-warning'
+    : 'text-foreground';
 
   // Determine stroke color for sparkline
   const defaultStroke = isBreached
-    ? '#ef4444'
+    ? 'var(--destructive)'
     : isDegraded
-    ? '#f59e0b'
-    : sparklineColor || '#00daf3';
+    ? 'var(--warning)'
+    : sparklineColor || 'var(--accent-ink)';
 
   const hasSparkline = Array.isArray(sparklineData) && sparklineData.length > 0;
   const { linePath, areaPath } = hasSparkline
@@ -58,15 +58,15 @@ export function KpiCard({
 
   return (
     <div
-      className={`rounded-xl bg-[#121A2F] border ${cardBorderClasses} p-4 flex flex-col justify-between hover:border-[#22304D] transition-all relative overflow-hidden group shadow-md ${className}`}
+      className={`rounded-lg bg-surface border ${cardBorderClasses} p-4 flex flex-col justify-between hover:border-accent-ink transition-colors relative group shadow-sm ${className}`}
     >
       {/* Top Eyebrow Row */}
-      <div className="flex items-center justify-between text-[10px] font-sans font-semibold text-[#9aa9ac]">
+      <div className="flex flex-wrap gap-1 items-center justify-between text-[10px] font-sans font-semibold text-muted-foreground">
         <span className="tracking-widest uppercase">{title}</span>
         {subtitle && (
           <span
             className={`font-mono text-[11px] font-medium ${
-              isBreached ? 'text-red-400' : isDegraded ? 'text-amber-400' : 'text-emerald-400'
+              isBreached ? 'text-destructive' : isDegraded ? 'text-warning' : 'text-success'
             }`}
           >
             {subtitle}
@@ -75,10 +75,10 @@ export function KpiCard({
       </div>
 
       {/* Primary Value & Badge Row */}
-      <div className="my-1.5 flex items-baseline justify-between gap-2">
+      <div className="my-1.5 flex flex-wrap items-baseline justify-between gap-2">
         <span className={`font-mono text-[28px] leading-8 font-semibold ${valueColor}`}>
           {value}
-          {unit && <span className="ml-1 text-[18px] font-normal text-[#9aa9ac]">{unit}</span>}
+          {unit && <span className="ml-1 text-[18px] font-normal text-muted-foreground">{unit}</span>}
         </span>
         {(badgeLabel || status !== 'neutral') && (
           <StatusBadge

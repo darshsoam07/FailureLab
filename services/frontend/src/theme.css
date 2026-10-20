@@ -1,0 +1,54 @@
+/* Terminal Neon: the only source of color values. */
+:root {
+  color-scheme: light;
+  --background: #E9E9E9;
+  --foreground: #122023;
+  --surface: #F5F6F3;
+  --surface-elevated: #FFFFFF;
+  --surface-dark: #122023;
+  --primary: #E1FCAD;
+  --primary-foreground: #122023;
+  --secondary: #DCE1DC;
+  --accent: #E1FCAD;
+  --accent-foreground: #122023;
+  --accent-ink: #36551C;
+  --border: #B8C2BC;
+  --input: #FFFFFF;
+  --focus-ring: #456729;
+  --muted: #DCE1DC;
+  --muted-foreground: #53635F;
+  --success: #315619;
+  --warning: #805000;
+  --destructive: #AE2536;
+  --danger-button: #AE2536;
+  --on-destructive: #FFFFFF;
+  --simulated: #6A4489;
+  --chart-series: #36551C;
+  --chart-secondary: #9A4D0A;
+  --sidebar: #122023;
+  --sidebar-active: #E1FCAD;
+}
+
+/* Local dark regions inherit semantic roles. Retain the existing .dark host
+   convention without introducing a new theme toggle or state provider. */
+.terminal-panel, .dark {
+  color-scheme: dark;
+  --background: var(--surface-dark);
+  --foreground: #E9E9E9;
+  --surface: #1B2D30;
+  --surface-elevated: #263C3F;
+  --secondary: #263C3F;
+  --accent-ink: var(--accent);
+  --border: #486064;
+  --input: #1B2D30;
+  --focus-ring: var(--accent);
+  --muted: #263C3F;
+  --muted-foreground: #ACBCB8;
+  --success: var(--accent);
+  --warning: #F2C66D;
+  --destructive: #FF9CA8;
+  --simulated: #D4B6EC;
+  --chart-series: var(--accent);
+  --chart-secondary: #F2B278;
+  color: var(--foreground);
+}

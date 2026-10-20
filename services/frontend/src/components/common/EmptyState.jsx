@@ -19,21 +19,21 @@ export function EmptyState({
 }) {
   return (
     <div
-      className={`rounded-xl border border-dashed border-[#1E2942] bg-[#121A2F]/40 p-8 text-center ${className}`}
+      className={`rounded-xl border border-dashed border-border bg-surface/40 p-8 text-center ${className}`}
     >
       {icon && (
         <div
           aria-hidden="true"
-          className="w-12 h-12 rounded-full bg-[#1E2942]/70 text-[#9aa9ac] flex items-center justify-center mx-auto mb-3"
+          className="w-12 h-12 rounded-full bg-border/70 text-muted-foreground flex items-center justify-center mx-auto mb-3"
         >
           {icon}
         </div>
       )}
-      <h3 className="text-sm font-semibold text-[#dee1f9]">
+      <h3 className="text-sm font-semibold text-foreground">
         {title}
       </h3>
       {description && (
-        <p className="text-xs text-[#9aa9ac] mt-1 max-w-md mx-auto leading-relaxed">
+        <p className="text-xs text-muted-foreground mt-1 max-w-md mx-auto leading-relaxed">
           {description}
         </p>
       )}

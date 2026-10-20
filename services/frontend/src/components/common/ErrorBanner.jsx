@@ -21,18 +21,18 @@ export function ErrorBanner({
   return (
     <div
       role="alert"
-      className={`rounded-xl bg-red-950/40 border border-red-500/60 p-4 text-red-200 glow-red flex items-start gap-3 shadow-lg ${className}`}
+      className={`rounded-xl bg-destructive/10 border border-destructive/60 p-4 text-destructive glow-red flex items-start gap-3 shadow-lg ${className}`}
     >
-      <div className="shrink-0 mt-0.5 text-red-400">
+      <div className="shrink-0 mt-0.5 text-destructive">
         <AlertTriangle className="h-5 w-5" aria-hidden="true" />
       </div>
       <div className="flex-1 min-w-0">
         {title && (
-          <p className="text-xs font-bold text-red-300 font-mono uppercase tracking-wider">
+          <p className="text-xs font-bold text-destructive font-mono uppercase tracking-wider">
             {title}
           </p>
         )}
-        <div className="text-xs text-red-200 mt-0.5 leading-relaxed break-words font-mono">
+        <div className="text-xs text-destructive mt-0.5 leading-relaxed break-words font-mono">
           {message}
         </div>
       </div>

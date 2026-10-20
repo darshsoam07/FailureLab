@@ -4,20 +4,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Stitch design system tokens
-        'surface-lowest': '#080d1d',
-        'surface-bg': '#0B1020',
-        'surface-card': '#121A2F',
-        'surface-border': '#1E2942',
-        'surface-border-hover': '#22304D',
-        'cyan-glow': '#00e5ff',
-        'cyan-dim': '#00daf3',
-        'emerald-accent': '#10B981',
-        'amber-accent': '#f59e0b',
-        'error-accent': '#ef4444',
-        'violet-accent': '#8B5CF6',
-        'text-primary': '#dee1f9',
-        'text-secondary': '#9aa9ac',
+        ...Object.fromEntries([
+          'background', 'foreground', 'surface', 'surface-elevated', 'surface-dark',
+          'primary', 'primary-foreground', 'secondary', 'accent', 'accent-foreground',
+          'accent-ink', 'border', 'input', 'focus-ring', 'muted', 'muted-foreground',
+          'success', 'warning', 'destructive', 'danger-button', 'on-destructive',
+          'simulated', 'chart-series', 'chart-secondary', 'sidebar', 'sidebar-active',
+        ].map(role => [role, `var(--${role})`])),
       },
       fontFamily: {
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
