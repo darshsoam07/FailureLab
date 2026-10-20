@@ -21,6 +21,7 @@ from services.common.models import AIReport, Experiment, ExperimentStatus, Fault
 from services.common.schemas import AIReportResponse, ExperimentCreate, ExperimentResponse, Schema, TelemetrySnapshotResponse
 from .toxiproxy_client import ToxiproxyClient, ToxiproxySettings
 from .traffic_gen import TrafficGenerator, TrafficStatus, TrafficToggle
+from .auth import init_auth_db, router as auth_router
 from .watchdog import (
     ACTIVE, ANALYSIS_QUEUE, FULFILLMENT_QUEUE, CleanupFailed, ControllerBusy,
     ExperimentConflict, ExperimentController, ExperimentNotFound, ExperimentStartFailed,
@@ -120,6 +121,7 @@ async def lifespan(application: FastAPI):
     async with AsyncExitStack() as resources:
         resources.push_async_callback(close_db)
         await init_db()
+        await init_auth_db()
         http = await resources.enter_async_context(httpx.AsyncClient(
             timeout=settings.CONTROLLER_HTTP_TIMEOUT_SECONDS, trust_env=False,
         ))
@@ -168,6 +170,7 @@ async def lifespan(application: FastAPI):
 
 
 app = FastAPI(title="FailureLab Experiment Controller", lifespan=lifespan)
+app.include_router(auth_router)
 DBSession = Annotated[AsyncSession, Depends(get_db_session)]
 
 

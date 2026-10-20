@@ -25,6 +25,11 @@
 .skip-link { position: fixed; top: 8px; left: 8px; transform: translateY(-200%); z-index: 100; background: var(--primary); color: var(--primary-foreground); padding: 12px; border-radius: 6px; }
 .skip-link:focus { transform: none; }
 main { scroll-margin-top: 72px; overflow-wrap: anywhere; }
+.has-session main { scroll-margin-top: 144px; }
+.has-session button, .has-session a, .has-session input, .has-session select { scroll-margin-top: 144px; }
+@media (min-width: 1024px) {
+  .has-session .lg\:sticky { top: 144px; }
+}
 main section, main article, main .grid > *, main .flex > * { min-width: 0; }
 pre { max-width: 100%; white-space: pre-wrap; overflow-wrap: anywhere; }
 button, a, input, select, [tabindex="-1"] { scroll-margin-block: 80px 160px; }

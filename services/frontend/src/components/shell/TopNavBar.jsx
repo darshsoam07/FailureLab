@@ -20,6 +20,9 @@ export function TopNavBar({
   controllerError,
   controllerLoading,
   onOpenEmergencyStop,
+  user,
+  onLogout,
+  logoutBusy = false,
 }) {
   const [showHealthTooltip, setShowHealthTooltip] = useState(false);
 
@@ -33,7 +36,7 @@ export function TopNavBar({
   const stopConfig = canEmergencyStop(activeExperiment);
 
   return (
-    <header className="sticky top-0 right-0 min-h-14 w-full z-30 bg-background/95 backdrop-blur-md border-b border-border/70 flex justify-between gap-3 items-center px-4 py-2 md:px-6 select-none">
+    <header className="sticky top-0 right-0 min-h-14 w-full z-30 bg-background/95 backdrop-blur-md border-b border-border/70 flex flex-wrap justify-between gap-3 items-center px-4 py-2 md:px-6 select-none">
       {/* Left: Page Title & Steady State Health Pill */}
       <div className="flex items-center gap-3 min-w-0">
         <h1 className="text-[15px] sm:text-[17px] font-bold text-foreground tracking-tight leading-snug">
@@ -162,6 +165,10 @@ export function TopNavBar({
           </span>
         </button>
       </div>
+      {user && <div className="basis-full flex flex-wrap justify-end items-center gap-3 border-t border-border/50 pt-2 text-xs">
+        <span className="min-w-0 break-all text-muted-foreground">{user.first_name} {user.last_name} · {user.email}{user.is_demo ? ' · Demo account' : ''}</span>
+        <button type="button" disabled={logoutBusy} onClick={onLogout} className="shrink-0 rounded-full border border-border bg-surface px-4 py-2 text-foreground hover:bg-muted disabled:opacity-50">{logoutBusy ? 'Signing out…' : 'Log out'}</button>
+      </div>}
     </header>
   );
 }

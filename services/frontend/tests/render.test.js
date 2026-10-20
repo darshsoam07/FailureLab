@@ -11,16 +11,32 @@ before(async () => {
     ExperimentsHistoryTable: 'reports/ExperimentsHistoryTable', SettingsView: 'settings/SettingsView',
     DashboardView: 'dashboard/DashboardView', ExperimentsView: 'experiments/ExperimentsView',
     TopologyOverview: 'topology/TopologyOverview', AppErrorBoundary: 'common/AppErrorBoundary',
+    AuthPortal: 'auth/AuthPortal', AuthenticatedApp: 'auth/AuthenticatedApp',
   };
   const entry = Object.entries(entries).map(([name, path]) => `export { ${name} } from ${JSON.stringify(fileURLToPath(new URL(`../src/components/${path}.jsx`, import.meta.url)))};`).join('\n');
   const result = await build({
     root: fileURLToPath(new URL('../', import.meta.url)), configFile: false, logLevel: 'silent',
     plugins: [{ name: 'render-test-entry', resolveId: id => id.endsWith('render-test-entry') ? '\0render-test-entry' : null, load: id => id === '\0render-test-entry' ? entry : null }, react()],
-    build: { ssr: 'render-test-entry', write: false, rollupOptions: { output: { paths: id => import.meta.resolve(id) } } },
+    build: { ssr: 'render-test-entry', write: false, rollupOptions: { output: { inlineDynamicImports: true, paths: id => import.meta.resolve(id) } } },
   });
   components = await import(`data:text/javascript;base64,${Buffer.from(result.output.find(item => item.type === 'chunk' && item.isEntry).code).toString('base64')}`);
 });
 async function html(path, name, props) { return render(React.createElement(components[name], props)); }
+test('auth screens render labelled fields and recovery navigation', async () => {
+  for (const [screen, title] of [['LOGIN', 'Log in'], ['SIGNUP', 'Create an Account'], ['FORGOT_PASSWORD', 'Forgot Password']]) {
+    const markup = await html('', 'AuthPortal', { initialScreen: screen });
+    assert.match(markup, new RegExp(title));
+    assert.match(markup, /Email Address/);
+    assert.equal((markup.match(/<h1/g) || []).length, 1);
+    assert.doesNotMatch(markup, /type="password"[^>]*value="[^"]+"/);
+  }
+});
+test('production gate checks session and explicit signed-out seam shows login', async () => {
+  assert.match(await html('', 'AuthenticatedApp', {}), /Checking your session/);
+  const markup = await html('', 'AuthenticatedApp', { initialUser: null });
+  assert.match(markup, /Log in/);
+  assert.doesNotMatch(markup, /EMERGENCY ABORT/);
+});
 test('history empty and error states render without crashing', async () => {
   const markup = await html('reports/ExperimentsHistoryTable', 'ExperimentsHistoryTable', { experiments: [], loading: false, error: 'offline', onSelect: () => {} });
   assert.match(markup, /No Experiments Found/); assert.match(markup, /offline/);

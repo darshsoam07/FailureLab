@@ -3,7 +3,7 @@
 from typing import Annotated
 from uuid import UUID
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, JsonValue, StringConstraints, model_validator
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, JsonValue, SecretStr, StringConstraints, field_validator, model_validator
 
 from .models import ExperimentStatus, FaultType, OrderStatus
 
@@ -124,3 +124,65 @@ class AIReportCreate(Schema):
 class AIReportResponse(AIReportCreate):
     id: UUID
     created_at: AwareDatetime
+
+
+class AuthEmail(Schema):
+    email: str = Field(min_length=3, max_length=254)
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: str) -> str:
+        import re
+        value = value.strip().casefold()
+        if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", value):
+            raise ValueError("Enter a valid email address")
+        return value
+
+
+class AuthLogin(AuthEmail):
+    password: SecretStr = Field(min_length=1, max_length=128)
+
+
+class AuthSignup(AuthEmail):
+    first_name: str = Field(min_length=1, max_length=100)
+    last_name: str = Field(min_length=1, max_length=100)
+    password: SecretStr = Field(min_length=12, max_length=128)
+    terms_accepted: bool
+
+    @field_validator("first_name", "last_name")
+    @classmethod
+    def clean_name(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Name cannot be blank")
+        return value
+
+    @field_validator("terms_accepted")
+    @classmethod
+    def require_terms(cls, value: bool) -> bool:
+        if not value:
+            raise ValueError("Accept the terms to create an account")
+        return value
+
+
+class AuthUserResponse(Schema):
+    id: UUID
+    email: str
+    first_name: str
+    last_name: str
+    is_demo: bool
+
+
+class AuthVerifyCode(Schema):
+    reset_id: UUID
+    code: str = Field(pattern=r"^\d{4}$", min_length=4, max_length=4)
+
+
+class AuthResetPassword(Schema):
+    reset_id: UUID
+    reset_token: SecretStr = Field(min_length=32, max_length=128)
+    password: SecretStr = Field(min_length=12, max_length=128)
+
+
+class AuthOAuthMock(Schema):
+    provider: Annotated[str, StringConstraints(pattern=r"^(google|facebook)$")]
