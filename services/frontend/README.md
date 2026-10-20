@@ -2,6 +2,10 @@
 
 A read-only settings view and four operational pages share one application shell: Dashboard, Experiments, Reports, Topology, and Settings. The frontend uses React, Vite, Tailwind CSS, Lucide, and Recharts. No additional dependencies were introduced for Phase 7.
 
+The Terminal Neon theme uses Technical Fog for the workspace, Deep Terminal Teal for navigation and terminal panels, and Neon Lime for selected controls and primary actions. Color values live only in `src/theme.css`; Tailwind utilities reference semantic properties. Use `text-accent-ink` for readable accent text on light surfaces, and pair `bg-primary` with `text-primary-foreground`. Add `terminal-panel` to an intentional dark region; its children inherit the corresponding token roles. Existing `.dark` host support is retained, but the document defaults to the light workspace.
+
+See [the Terminal Neon review](TERMINAL_NEON_REVIEW.md) for the token table, changed-file inventory, contrast measurements, browser checks, bundle sizes, and outstanding manual QA.
+
 ## Run
 
 Requires Node 22.12+ and the existing Python services. From this directory:
