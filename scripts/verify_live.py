@@ -37,9 +37,12 @@ async def main():
     run_started = datetime.now(timezone.utc)
     record('run_started', run_started.isoformat())
     active = None
+    from services.common.authorization import internal_headers
     async with httpx.AsyncClient(timeout=20, trust_env=False) as http:
         async def call(method, path, payload=None, base=controller):
-            response = await http.request(method, base + path, **({'json': payload} if payload is not None else {}))
+            response = await http.request(method, base + path,
+                headers=internal_headers() if base in {order, controller} else {},
+                **({'json': payload} if payload is not None else {}))
             response.raise_for_status()
             return response.json()
 

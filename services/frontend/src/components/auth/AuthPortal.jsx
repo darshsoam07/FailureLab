@@ -3,6 +3,8 @@ import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { authClient } from '../../api/auth.js';
 import { authReducer, AUTH_SCREENS, INITIAL_AUTH_STATE, maskEmail, otpEdit, secondsRemaining } from '../../lib/auth.js';
 import { AuthArtwork } from './AuthArtwork.jsx';
+import { startVisiblePolling } from '../../lib/visiblePolling.js';
+import { normalizeProviderReadiness } from '../../lib/providerReadiness.js';
 import './auth.css';
 
 const TITLES = { SIGNUP: 'Create an Account', LOGIN: 'Log in', FORGOT_PASSWORD: 'Forgot Password', VERIFY_CODE: 'Verification Code', RESET_PASSWORD: 'Reset Password' };
@@ -24,7 +26,7 @@ function ProviderIcon({ provider }) {
     <path fill="var(--auth-google-green)" d="M12 22c2.7 0 5-.9 6.7-2.4l-3.3-2.6c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.2H3v2.7A10 10 0 0 0 12 22Z"/>
     <path fill="var(--auth-google-yellow)" d="M6.4 13.8a6 6 0 0 1 0-3.6V7.5H3a10 10 0 0 0 0 9l3.4-2.7Z"/>
     <path fill="var(--auth-google-red)" d="M12 6c1.5 0 2.8.5 3.9 1.5l2.9-2.9A9.6 9.6 0 0 0 12 2a10 10 0 0 0-9 5.5l3.4 2.7C7.2 7.8 9.4 6 12 6Z"/>
-  </svg> : <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="var(--auth-facebook)"/><path fill="white" d="M13.5 23v-9h3l.5-3.5h-3.5V8.3c0-1 .3-1.7 1.8-1.7H17V3.5c-.8-.1-1.6-.2-2.5-.2-2.5 0-4.2 1.5-4.2 4.4v2.8H7.5V14h2.8v9Z"/></svg>;
+  </svg> : <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .8a11.2 11.2 0 0 0-3.54 21.83c.56.1.77-.24.77-.54v-2.1c-3.13.68-3.79-1.33-3.79-1.33-.51-1.3-1.25-1.65-1.25-1.65-1.03-.7.08-.69.08-.69 1.13.08 1.73 1.16 1.73 1.16 1 1.72 2.63 1.22 3.27.93.1-.73.39-1.22.71-1.5-2.5-.28-5.13-1.25-5.13-5.57 0-1.23.44-2.23 1.16-3.02-.12-.28-.5-1.43.11-2.98 0 0 .95-.3 3.08 1.15a10.7 10.7 0 0 1 5.6 0c2.14-1.45 3.08-1.15 3.08-1.15.61 1.55.23 2.7.11 2.98.72.79 1.16 1.79 1.16 3.02 0 4.33-2.63 5.28-5.14 5.56.4.35.76 1.03.76 2.08v3.11c0 .3.2.65.78.54A11.2 11.2 0 0 0 12 .8Z"/></svg>;
 }
 
 export function AuthPortal({ client = authClient, onAuthenticated, initialScreen = 'LOGIN' }) {
@@ -38,7 +40,9 @@ export function AuthPortal({ client = authClient, onAuthenticated, initialScreen
   const [devCode, setDevCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [demo, setDemo] = useState(false);
+  const [providers, setProviders] = useState({});
+  const [providerMessage, setProviderMessage] = useState('Checking social sign-in availability…');
+  const providerPoller = useRef(null);
   const active = useRef(null);
   const otpRefs = useRef([]);
   const heading = useRef(null);
@@ -46,9 +50,17 @@ export function AuthPortal({ client = authClient, onAuthenticated, initialScreen
   const screen = state.screen;
   const credentials = screen === 'SIGNUP' || screen === 'LOGIN';
   useEffect(() => {
-    const controller = new AbortController();
-    client.config(controller.signal).then(data => setDemo(Boolean(data.demo_mode))).catch(() => {});
-    return () => { controller.abort(); active.current?.abort(); };
+    const polling = startVisiblePolling(async signal => {
+      const data = await client.config(signal);
+      if (signal.aborted) return;
+      const status = normalizeProviderReadiness(data, window.location.origin);
+      setProviders(status.providers); setProviderMessage(status.message);
+    }, 15000, { onError: failure => {
+      setProviders({});
+      setProviderMessage(failure.status ? 'Cannot check social sign-in. Check the controller connection and retry.' : failure.message);
+    } });
+    providerPoller.current = polling;
+    return () => { polling.stop(); providerPoller.current = null; active.current?.abort(); };
   }, [client]);
   useEffect(() => {
     if (firstRender.current) { firstRender.current = false; return; }
@@ -157,11 +169,12 @@ export function AuthPortal({ client = authClient, onAuthenticated, initialScreen
         {showTerms && <aside className="auth-terms" aria-label="Terms and conditions"><strong>FailureLab usage terms</strong><p>Use only systems you own or are authorized to test. Faults can disrupt services. This application is an experimentation tool; you are responsible for the targets and safety limits you choose.</p><button type="button" className="auth-link" onClick={() => setShowTerms(false)}>Close terms</button></aside>}
         {credentials && <>
           <div className="auth-divider"><span>or</span></div>
-          <div className="auth-providers">{['google', 'facebook'].map(provider => <button key={provider} type="button" disabled={busy || !demo} title={demo ? 'Demo sign-in; no external provider is contacted' : 'Demo sign-in is disabled by the server'}
-            onClick={() => { if (!terms) { setError('Please agree to the Terms & Condition.'); return; } perform(async signal => { const data = await client.oauth({ provider }, signal); if (!signal.aborted) onAuthenticated(data.user); }); }}>
-            <ProviderIcon provider={provider} /><span>Continue with {provider === 'google' ? 'Google' : 'Facebook'}</span>
+          <div className="auth-providers">{['google', 'github'].map(provider => <button key={provider} type="button" disabled={busy || !providers[provider]} title={providers[provider] ? `Sign in securely with ${provider}` : 'Provider is not configured by the operator'}
+            onClick={() => { if (!terms) { setError('Please agree to the Terms & Condition.'); return; } perform(async signal => { const data = await client.oauth({ provider }, signal); if (!signal.aborted) { window.location.assign(data.authorization_url); await new Promise(() => {}); } }); }}>
+            <ProviderIcon provider={provider} /><span>Continue with {provider === 'google' ? 'Google' : 'GitHub'}</span>
           </button>)}</div>
-          <p className="auth-provider-note">{demo ? 'Demo sign-in only. Google and Facebook are not contacted.' : 'Social demo sign-in is disabled in this environment.'}</p>
+          <p className="auth-provider-note" role="status">{providerMessage} Email/password remains available.</p>
+          <button type="button" className="auth-link" disabled={busy} onClick={() => providerPoller.current?.refresh()}>Refresh sign-in availability</button>
         </>}
       </section>
     </div>

@@ -4,7 +4,7 @@
   --auth-white: #fff; --auth-ink: #171717; --auth-muted: #686868;
   --auth-border: #d4d4d4; --auth-black: #000; --auth-error: #a21c2c;
   --auth-google-blue: #4285f4; --auth-google-green: #34a853;
-  --auth-google-yellow: #fbbc05; --auth-google-red: #ea4335; --auth-facebook: #1877f2;
+  --auth-google-yellow: #fbbc05; --auth-google-red: #ea4335;
   position: relative; isolation: isolate; min-height: 100dvh; width: 100%;
   display: flex; align-items: center; justify-content: center; padding: 16px;
   color: var(--auth-ink); color-scheme: light; font-family: Inter, "Segoe UI", sans-serif;

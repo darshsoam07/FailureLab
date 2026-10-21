@@ -1,5 +1,7 @@
 """FailureLab experiment control plane. Run via uvicorn with env bind settings."""
 
+from services.common.authorization import authorize, internal_headers
+
 import asyncio
 import logging
 from contextlib import AsyncExitStack, asynccontextmanager
@@ -22,6 +24,8 @@ from services.common.schemas import AIReportResponse, ExperimentCreate, Experime
 from .toxiproxy_client import ToxiproxyClient, ToxiproxySettings
 from .traffic_gen import TrafficGenerator, TrafficStatus, TrafficToggle
 from .auth import init_auth_db, router as auth_router
+from .oauth import router as oauth_router
+from services.common.safe_access_log import OAuthQueryRedaction
 from .watchdog import (
     ACTIVE, ANALYSIS_QUEUE, FULFILLMENT_QUEUE, CleanupFailed, ControllerBusy,
     ExperimentConflict, ExperimentController, ExperimentNotFound, ExperimentStartFailed,
@@ -153,7 +157,7 @@ async def lifespan(application: FastAPI):
             resources.push_async_callback(stop_task, task)
         application.state.tasks = tasks
         traffic_http = await resources.enter_async_context(httpx.AsyncClient(
-            timeout=settings.TRAFFIC_HTTP_TIMEOUT_SECONDS, trust_env=False,
+            timeout=settings.TRAFFIC_HTTP_TIMEOUT_SECONDS, trust_env=False, headers=internal_headers(),
             limits=httpx.Limits(max_connections=settings.TRAFFIC_MAX_IN_FLIGHT),
         ))
         application.state.traffic = TrafficGenerator(
@@ -169,8 +173,10 @@ async def lifespan(application: FastAPI):
             application.state.ready = False
 
 
-app = FastAPI(title="FailureLab Experiment Controller", lifespan=lifespan)
+app = FastAPI(dependencies=[Depends(authorize)], title="FailureLab Experiment Controller", lifespan=lifespan)
 app.include_router(auth_router)
+app.include_router(oauth_router)
+app.add_middleware(OAuthQueryRedaction)
 DBSession = Annotated[AsyncSession, Depends(get_db_session)]
 
 

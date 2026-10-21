@@ -27,6 +27,11 @@ test('auth screens render labelled fields and recovery navigation', async () => 
     const markup = await html('', 'AuthPortal', { initialScreen: screen });
     assert.match(markup, new RegExp(title));
     assert.match(markup, /Email Address/);
+    if (screen !== 'FORGOT_PASSWORD') {
+      assert.match(markup, /Continue with Google/);
+      assert.match(markup, /Continue with GitHub/);
+      assert.doesNotMatch(markup, /Facebook|Demo sign-in/);
+    }
     assert.equal((markup.match(/<h1/g) || []).length, 1);
     assert.doesNotMatch(markup, /type="password"[^>]*value="[^"]+"/);
   }

@@ -44,7 +44,7 @@ def test_password_hashes_are_salted_and_reject_wrong_or_malformed_values():
 
 def test_auth_schema_is_separate_and_has_unique_email_and_foreign_keys():
     assert len(Base.metadata.tables) == 7
-    assert len(models.AuthBase.metadata.tables) == 3
+    assert len(models.AuthBase.metadata.tables) == 6
     assert models.User.__table__.c.email.unique
     for table in models.AuthBase.metadata.tables.values():
         assert "CREATE TABLE" in str(CreateTable(table).compile(dialect=postgresql.dialect()))
@@ -59,8 +59,6 @@ def test_email_password_and_code_validation():
         schemas.AuthSignup(email="a@b.test", first_name="A", last_name="B", password="short", terms_accepted=True)
     with pytest.raises(ValidationError):
         schemas.AuthVerifyCode(reset_id=uuid4(), code="12a4")
-    with pytest.raises(ValidationError):
-        schemas.AuthOAuthMock(provider="arbitrary-provider")
 
 
 @pytest.mark.asyncio
@@ -228,16 +226,6 @@ async def test_reset_requires_token_and_rejects_password_reuse():
 
 
 @pytest.mark.asyncio
-async def test_oauth_mock_is_opt_in_and_cannot_impersonate_real_email():
-    session = db()
-    with pytest.raises(HTTPException) as exc:
-        await auth.oauth_mock(schemas.AuthOAuthMock(provider="google"), session, Response(), auth.AuthSettings())
-    assert exc.value.status_code == 404
-    result = await auth.oauth_mock(schemas.AuthOAuthMock(provider="google"), session, Response(), auth.AuthSettings(AUTH_DEMO_MODE=True))
-    assert result["user"]["is_demo"] and result["user"]["email"].endswith("@example.invalid")
-
-
-@pytest.mark.asyncio
 async def test_http_auth_routes_require_custom_header_but_config_is_public():
     app = FastAPI(); app.include_router(auth.router)
     session = db(); session.scalar.return_value = None
@@ -245,6 +233,7 @@ async def test_http_auth_routes_require_custom_header_but_config_is_public():
     app.dependency_overrides[auth.get_auth_settings] = lambda: auth.AuthSettings()
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         assert (await client.get("/api/auth/config")).status_code == 200
+        assert (await client.post("/api/auth/oauth-mock", json={"provider": "facebook"})).status_code == 404
         assert (await client.get("/api/auth/me")).status_code == 401
         assert (await client.post("/api/auth/logout", json={})).status_code == 403
         result = await client.post("/api/auth/logout", json={}, headers={"X-FailureLab-Auth": "1"})

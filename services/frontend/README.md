@@ -1,8 +1,8 @@
 # FailureLab frontend
 
 The dashboard now opens behind a five-screen authentication portal. See
-[authentication setup and verification](AUTHENTICATION.md) for local demo flags,
-SMTP configuration, session behavior, and the intentionally public operational APIs.
+[authentication setup and verification](AUTHENTICATION.md) for Google/GitHub OAuth,
+SMTP configuration, sessions, and backend viewer/operator authorization.
 
 A read-only settings view and four operational pages share one application shell: Dashboard, Experiments, Reports, Topology, and Settings. The frontend uses React, Vite, Tailwind CSS, Lucide, and Recharts. No additional dependencies were introduced for Phase 7.
 
@@ -98,7 +98,7 @@ See [Phase 7 QA and cleanup report](PHASE7_QA.md) for per-file counts, measureme
 - No browser-accessible per-service probes for Inventory, Fulfillment Worker, or AI Worker: these nodes remain unknown.
 - No CPU, memory, replica, resource-utilization, or infrastructure metrics.
 - No global SLO configuration endpoint: thresholds belong to individual experiments.
-- No editable Settings, authentication management, provider-secret display, automatic AI experiment execution, or deployment controls.
+- No editable Settings, account-administration UI, provider-secret display, automatic AI experiment execution, or deployment controls. Signed-in users can link Google/GitHub; operator grants remain a local administrative command.
 - Telemetry snapshots do not record retry counts or circuit-breaker transitions. Reports must not infer these as measured facts.
 
 ## Manual QA checklist

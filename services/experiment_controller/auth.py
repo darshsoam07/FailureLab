@@ -1,4 +1,4 @@
-"""Optional dashboard authentication; existing reliability APIs remain public."""
+"""Password authentication and opaque database-backed sessions."""
 
 import asyncio
 import hashlib
@@ -20,9 +20,10 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from services.common.database import get_db_session, get_engine
+from services.common.config import ENV_FILE
 from services.common.models import AuthBase, AuthSession, PasswordResetCode, User
 from services.common.schemas import (
-    AuthEmail, AuthLogin, AuthOAuthMock, AuthResetPassword, AuthSignup,
+    AuthEmail, AuthLogin, AuthResetPassword, AuthSignup,
     AuthUserResponse, AuthVerifyCode,
 )
 
@@ -32,7 +33,7 @@ _EPHEMERAL_RESET_KEY = secrets.token_bytes(32)
 
 
 class AuthSettings(BaseSettings):
-    model_config = SettingsConfigDict(case_sensitive=True, extra="ignore")
+    model_config = SettingsConfigDict(case_sensitive=True, extra="ignore", env_file=ENV_FILE, env_file_encoding="utf-8", env_ignore_empty=True)
     AUTH_DEMO_MODE: bool = False
     AUTH_COOKIE_SECURE: bool = True
     AUTH_SESSION_SECONDS: int = Field(default=28800, ge=300, le=604800)
@@ -53,7 +54,11 @@ def get_auth_settings() -> AuthSettings:
 async def init_auth_db() -> None:
     async with get_engine().begin() as connection:
         await connection.execute(text("SELECT pg_advisory_xact_lock(721148320042)"))
-        await connection.run_sync(AuthBase.metadata.create_all)
+        from services.common.models import User, PasswordResetCode, AuthSession
+        from services.common.auth_migrations import migrate_auth
+        for model in (User, PasswordResetCode, AuthSession):
+            await connection.run_sync(lambda conn, table=model.__table__: table.create(conn, checkfirst=True))
+        await migrate_auth(connection)
 
 
 def hash_password(password: str) -> str:
@@ -114,13 +119,21 @@ async def create_session(user: User, session: AsyncSession, response: Response, 
     return {"user": AuthUserResponse.model_validate(user).model_dump(mode="json")}
 
 
+async def rotate_browser_session(request, session):
+    if request and request.cookies.get(COOKIE):
+        await session.execute(delete(AuthSession).where(AuthSession.token_hash == token_hash(request.cookies[COOKIE])))
+
+
 @router.get("/config")
-async def config(settings: Settings):
-    return {"demo_mode": settings.AUTH_DEMO_MODE, "password_min_length": 12}
+async def config(settings: Settings, response: Response):
+    from .oauth import provider_readiness
+    response.headers["Cache-Control"] = "no-store"
+    return {"demo_mode": settings.AUTH_DEMO_MODE, "password_min_length": 12, **provider_readiness(settings)}
 
 
 @router.post("/signup", status_code=201, dependencies=write_dependencies)
-async def signup(body: AuthSignup, session: DB, response: Response, settings: Settings):
+async def signup(body: AuthSignup, session: DB, response: Response, settings: Settings, request: Request = None):
+    await rotate_browser_session(request, session)
     user = User(id=uuid4(), email=body.email, first_name=body.first_name, last_name=body.last_name,
                 password_hash=await asyncio.to_thread(hash_password, body.password.get_secret_value()),
                 password_history=[], failed_login_attempts=0, is_demo=False)
@@ -134,7 +147,7 @@ async def signup(body: AuthSignup, session: DB, response: Response, settings: Se
 
 
 @router.post("/login", dependencies=write_dependencies)
-async def login(body: AuthLogin, session: DB, response: Response, settings: Settings):
+async def login(body: AuthLogin, session: DB, response: Response, settings: Settings, request: Request = None):
     user = await session.scalar(select(User).where(User.email == body.email).with_for_update())
     valid = await asyncio.to_thread(check_password, body.password.get_secret_value(),
                                     user.password_hash if user and user.password_hash else _DUMMY_PASSWORD)
@@ -151,6 +164,7 @@ async def login(body: AuthLogin, session: DB, response: Response, settings: Sett
         raise HTTPException(401, "Invalid email or password")
     user.failed_login_attempts = 0
     user.locked_until = None
+    await rotate_browser_session(request, session)
     return await create_session(user, session, response, settings)
 
 
@@ -160,9 +174,10 @@ async def me(request: Request, response: Response, session: DB, settings: Settin
     token = request.cookies.get(COOKIE, "")
     user = await session.scalar(select(User).join(AuthSession).where(
         AuthSession.token_hash == token_hash(token), AuthSession.expires_at > now()))
-    if not user or (user.is_demo and not settings.AUTH_DEMO_MODE):
+    if not user or user.is_demo:
         raise HTTPException(401, "Sign in to continue")
-    return {"user": AuthUserResponse.model_validate(user)}
+    from services.common.models import OperatorRole
+    return {"user": {**AuthUserResponse.model_validate(user).model_dump(mode="json"), "role": "operator" if await session.get(OperatorRole, user.id) else "viewer"}}
 
 
 @router.post("/logout", dependencies=write_dependencies)
@@ -277,16 +292,3 @@ async def reset_password(body: AuthResetPassword, session: DB, response: Respons
     await session.commit()
     response.delete_cookie(COOKIE, path="/", samesite="strict")
     return {"message": "Password reset successfully. Log in with your new password."}
-
-
-@router.post("/oauth-mock", dependencies=write_dependencies)
-async def oauth_mock(body: AuthOAuthMock, session: DB, response: Response, settings: Settings):
-    if not settings.AUTH_DEMO_MODE:
-        raise HTTPException(404, "Demo sign-in is disabled")
-    user_id = uuid4()
-    # A fresh, clearly marked demo identity can never claim a real user's email.
-    user = User(id=user_id, email=f"demo-{user_id}@example.invalid", first_name=body.provider.title(),
-                last_name="Demo", is_demo=True, password_history=[], failed_login_attempts=0)
-    session.add(user)
-    await session.flush()
-    return await create_session(user, session, response, settings)

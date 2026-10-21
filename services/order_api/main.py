@@ -5,6 +5,8 @@ set UVICORN_HOST / UVICORN_PORT in the environment. Connection configuration
 comes from BaseAppSettings; no service address is embedded here.
 """
 
+from services.common.authorization import authorize
+
 import asyncio
 import logging
 from contextlib import AsyncExitStack, asynccontextmanager
@@ -125,7 +127,7 @@ async def lifespan(application: FastAPI):
             application.state.ready = False
 
 
-app = FastAPI(title="FailureLab Order API", lifespan=lifespan)
+app = FastAPI(dependencies=[Depends(authorize)], title="FailureLab Order API", lifespan=lifespan)
 DBSession = Annotated[AsyncSession, Depends(get_db_session)]
 
 

@@ -1,5 +1,7 @@
 """Concurrent circuit breaker and bounded HTTP retries for inventory calls."""
 
+from services.common.authorization import internal_headers
+
 import asyncio
 import time
 from collections.abc import Awaitable, Callable
@@ -157,7 +159,7 @@ class InventoryClient:
                             response = await self.client.post(
                                 self.url,
                                 json={"order_id": str(order_id), "sku": sku, "quantity": quantity},
-                                headers={"X-Idempotency-Key": str(order_id)},
+                                headers={**internal_headers(), "X-Idempotency-Key": str(order_id)},
                                 timeout=httpx.Timeout(self.timeout_seconds),
                                 follow_redirects=False,
                             )

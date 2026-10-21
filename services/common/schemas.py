@@ -182,7 +182,3 @@ class AuthResetPassword(Schema):
     reset_id: UUID
     reset_token: SecretStr = Field(min_length=32, max_length=128)
     password: SecretStr = Field(min_length=12, max_length=128)
-
-
-class AuthOAuthMock(Schema):
-    provider: Annotated[str, StringConstraints(pattern=r"^(google|facebook)$")]

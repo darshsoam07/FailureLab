@@ -1,66 +1,35 @@
 # Authentication
 
-The five-screen portal sits before the Terminal Neon dashboard. It uses original
-inline SVG VR portraits, screen-specific gradients, labelled controls, OTP paste
-and keyboard handling, and reduced-motion support. No new dependencies are needed.
+The five-screen portal preserves email/password signup, login, and recovery.
+Google and GitHub now use real server-side OAuth; Facebook and mock social login
+are removed. Unconfigured providers are disabled. No frontend dependencies were
+added; the backend uses PyJWT with cryptographic signature verification.
 
-`components/auth/` owns the portal, artwork, styles, and session gate.
-`lib/auth.js` contains the testable state machine; `api/auth.js` sends cookie-based
-requests through `VITE_CONTROLLER_API_URL`. Session and reset tokens are never
-written to local storage. `App` remains directly renderable in existing tests;
-`AuthenticatedApp.initialUser` is an explicit test seam, unused by production.
+See [OAuth setup](../../OAUTH_SETUP.md) for the architecture, additive migration,
+exact localhost callbacks, credentials, role administration, internal service
+tokens, and manual verification checklist.
 
-## Local demo
+`components/auth/` contains the portal, SVG portraits, session gate, and scoped
+styles. `lib/auth.js` contains the state machine; `api/auth.js` sends
+cookie-authenticated requests through `VITE_CONTROLLER_API_URL`. No tokens go in
+local storage. Session restoration runs on refresh. `App` remains directly
+renderable in tests, and `AuthenticatedApp.initialUser` is a test-only seam.
 
-Keep the backend environment from `LOCAL_VERIFICATION.md`. Before starting the
-controller, set these additional environment variables in its terminal:
+The account strip provides explicit Google/GitHub linking after signing in.
+Email collisions never silently merge accounts. OAuth errors/cancellation appear
+as dismissible messages. Existing password recovery behavior remains: 12-character
+minimum, expiring four-digit codes, a resend cooldown, five guesses, password-reuse
+rejection, and session revocation after reset. `AUTH_DEMO_MODE=true` only enables
+local reset-code display; it no longer enables any social login.
 
-```powershell
-$env:AUTH_DEMO_MODE = 'true'
-$env:AUTH_COOKIE_SECURE = 'false'
-.\.venv\Scripts\python.exe -m uvicorn services.experiment_controller.main:app --host $env:CONTROLLER_HOST --port $env:CONTROLLER_PORT
-```
-
-Set `CONTROLLER_HOST` and `CONTROLLER_PORT` for your local environment first.
-Use the frontend's existing relative `/controller-api` proxy configuration, then
-run `npm.cmd --prefix services/frontend run dev`. Restart an already running
-controller to load the new routes and settings.
-
-Demo mode displays reset codes in the portal and enables clearly labelled Google
-and Facebook **demo** identities. These buttons do not contact either provider.
-Create an ordinary account to exercise password recovery. Passwords require at
-least 12 characters. Codes expire after 10 minutes, allow five guesses, and can be
-resent after 30 seconds. Successful password changes consume reset challenges
-and revoke all sessions; previous passwords cannot be reused.
-
-## Deployment configuration and scope
-
-Defaults are `AUTH_DEMO_MODE=false` and `AUTH_COOKIE_SECURE=true`. Use HTTPS and a
-same-origin reverse proxy for cookie authentication. Recovery email requires
-`AUTH_RESET_SECRET` (at least 32 characters), `AUTH_SMTP_HOST`, `AUTH_SMTP_PORT`,
-and `AUTH_SMTP_FROM`; optional credentials are `AUTH_SMTP_USERNAME` and
-`AUTH_SMTP_PASSWORD`. SMTP uses STARTTLS. Configure secrets only on the backend.
-`AUTH_SESSION_SECONDS` defaults to 28800.
-
-The controller creates its separate auth metadata tables (`auth_users`,
-`password_reset_codes`, `auth_sessions`) during startup. The original seven
-reliability tables and existing unauthenticated operational API contracts remain
-unchanged. **This is a dashboard sign-in gate, not access control for the chaos
-APIs.** Restrict those APIs at your deployment boundary if exposed beyond trusted
-users. Logging out does not stop traffic or experiments.
-
-## Verification
+Browser reads require a session; operational mutations require an operator grant.
+Internal APIs require server credentials. Signing out does not stop experiments
+or traffic. All old backend processes must restart to enforce the new checks.
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest -q
 npm.cmd --prefix services/frontend test
 npm.cmd --prefix services/frontend run build
 ```
 
-Manual checks: signup; logout/login; invalid credentials; password visibility;
-forgot-password email preservation; OTP typing/paste/backspace; resend countdown;
-wrong/expired codes; mismatched/reused passwords; successful reset and revoked
-sessions; mock identity labels; controller-down errors; mobile scrolling and
-keyboard focus. Verify all five palettes and artwork against the supplied visual
-references. SMTP delivery and real-browser session behavior require separate
-environment testing; mocked tests do not establish these.
+Live provider testing requires configured credentials. Automated tests use mocked
+providers and are not evidence of a successful real Google/GitHub browser login.

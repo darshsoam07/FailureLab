@@ -49,3 +49,16 @@ test('authentication errors preserve status without automatically retrying', asy
   await assert.rejects(client.me(), error => error.status === 401);
   assert.equal(calls, 1);
 });
+test('social sign-in uses real provider routes and explicit account-link intent', async () => {
+  const urls = [];
+  const client = createAuthClient({ baseUrl: '/controller-api', fetchImpl: async (url, options) => {
+    urls.push(url);
+    assert.equal(options.method, 'POST');
+    assert.equal(options.credentials, 'include');
+    return new Response('{"authorization_url":"https://provider.example/authorize"}');
+  } });
+  await client.oauth({ provider: 'google' });
+  await client.oauth({ provider: 'github', link: true });
+  assert.deepEqual(urls, ['/controller-api/api/auth/oauth/google/start', '/controller-api/api/auth/oauth/github/start?link=true']);
+  assert.throws(() => client.oauth({ provider: 'facebook' }), /Unsupported provider/);
+});

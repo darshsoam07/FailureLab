@@ -175,3 +175,28 @@ class AuthSession(AuthBase):
     token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
     user_id: Mapped[UUID] = mapped_column(ForeignKey("auth_users.id", ondelete="CASCADE"), index=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class ProviderIdentity(AuthBase):
+    __tablename__ = "auth_provider_identities"
+    provider: Mapped[str] = mapped_column(String(16), primary_key=True)
+    subject: Mapped[str] = mapped_column(String(255), primary_key=True)
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("auth_users.id", ondelete="CASCADE"), index=True)
+
+
+class OAuthTransaction(AuthBase):
+    __tablename__ = "auth_oauth_transactions"
+    state_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    browser_hash: Mapped[str] = mapped_column(String(64))
+    provider: Mapped[str] = mapped_column(String(16))
+    verifier: Mapped[str] = mapped_column(String(128))
+    nonce: Mapped[str] = mapped_column(String(64))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    link_user_id: Mapped[UUID | None] = mapped_column(ForeignKey("auth_users.id", ondelete="CASCADE"))
+    session_hash: Mapped[str | None] = mapped_column(String(64))
+
+
+class OperatorRole(AuthBase):
+    """Explicit, operator-managed grants. Signup can never assign this role."""
+    __tablename__ = "auth_operator_roles"
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("auth_users.id", ondelete="CASCADE"), primary_key=True)

@@ -8,7 +8,7 @@ export function createAuthClient({ baseUrl, fetchImpl = globalThis.fetch }) {
     const timer = setTimeout(abort, 15000);
     try {
       const response = await fetchImpl(`${baseUrl.replace(/\/$/, '')}/api/auth/${path}`, {
-        method: body === undefined ? 'GET' : 'POST', credentials: 'include',
+        method: body === undefined ? 'GET' : 'POST', credentials: 'include', cache: 'no-store',
         signal: controller.signal,
         headers: { Accept: 'application/json', 'X-FailureLab-Auth': '1', ...(body !== undefined && { 'Content-Type': 'application/json' }) },
         ...(body !== undefined && { body: JSON.stringify(body) }),
@@ -34,7 +34,10 @@ export function createAuthClient({ baseUrl, fetchImpl = globalThis.fetch }) {
     forgot: (body, signal) => request('forgot-password', body, signal),
     verify: (body, signal) => request('verify-code', body, signal),
     reset: (body, signal) => request('reset-password', body, signal),
-    oauth: (body, signal) => request('oauth-mock', body, signal),
+    oauth: ({ provider, link = false }, signal) => {
+      if (!['google', 'github'].includes(provider)) throw new Error('Unsupported provider');
+      return request(`oauth/${provider}/start${link ? '?link=true' : ''}`, {}, signal);
+    },
     logout: signal => request('logout', {}, signal),
   };
 }

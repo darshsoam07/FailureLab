@@ -143,11 +143,13 @@ async def test_unknown_or_mismatched_event_is_rejected(missing):
 
 @pytest.mark.asyncio
 async def test_worker_stats_and_health(monkeypatch):
+    monkeypatch.setenv("INTERNAL_SERVICE_TOKEN", "test-worker-token-" * 3)
     worker, _, _, _, _ = setup_worker()
     worker.inventory.stats.retry_count = 2
     monkeypatch.setattr(module.app.state, "worker", worker, raising=False)
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=module.app), base_url="http://test") as client:
-        response = await client.get("/worker-stats")
+        assert (await client.get("/worker-stats")).status_code == 401
+        response = await client.get("/worker-stats", headers={"Authorization": "Bearer " + "test-worker-token-" * 3})
         assert response.json()["circuit_breaker_state"] == "CLOSED"
         assert response.json()["retry_count"] == 2
         assert (await client.get("/health")).status_code == 200
