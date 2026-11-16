@@ -1,18 +1,18 @@
-/* Terminal Neon: the only source of color values. */
+/* FailureLab: the only source of color values. */
 :root {
   color-scheme: light;
-  --background: #E9E9E9;
-  --foreground: #122023;
-  --surface: #F5F6F3;
+  --background: #F0EDE5;
+  --foreground: #203C32;
+  --surface: #FBFAF5;
   --surface-elevated: #FFFFFF;
-  --surface-dark: #122023;
-  --primary: #E1FCAD;
-  --primary-foreground: #122023;
+  --surface-dark: #203C32;
+  --primary: #EBC89A;
+  --primary-foreground: #203C32;
   --secondary: #DCE1DC;
-  --accent: #E1FCAD;
-  --accent-foreground: #122023;
+  --accent: #EBC89A;
+  --accent-foreground: #203C32;
   --accent-ink: #36551C;
-  --border: #B8C2BC;
+  --border: #BEC2B7;
   --input: #FFFFFF;
   --focus-ring: #456729;
   --muted: #DCE1DC;
@@ -25,8 +25,8 @@
   --simulated: #6A4489;
   --chart-series: #36551C;
   --chart-secondary: #9A4D0A;
-  --sidebar: #122023;
-  --sidebar-active: #E1FCAD;
+  --sidebar: #203C32;
+  --sidebar-active: #EBC89A;
 }
 
 /* Local dark regions inherit semantic roles. Retain the existing .dark host
@@ -34,7 +34,7 @@
 .terminal-panel, .dark {
   color-scheme: dark;
   --background: var(--surface-dark);
-  --foreground: #E9E9E9;
+  --foreground: #F0EDE5;
   --surface: #1B2D30;
   --surface-elevated: #263C3F;
   --secondary: #263C3F;
@@ -52,3 +52,4 @@
   --chart-secondary: #F2B278;
   color: var(--foreground);
 }
+

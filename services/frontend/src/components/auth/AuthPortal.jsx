@@ -1,7 +1,7 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { authClient } from '../../api/auth.js';
-import { authReducer, AUTH_SCREENS, INITIAL_AUTH_STATE, maskEmail, otpEdit, secondsRemaining } from '../../lib/auth.js';
+import { authReducer, INITIAL_AUTH_STATE, maskEmail, otpEdit, secondsRemaining } from '../../lib/auth.js';
 import { AuthArtwork } from './AuthArtwork.jsx';
 import { startVisiblePolling } from '../../lib/visiblePolling.js';
 import { normalizeProviderReadiness } from '../../lib/providerReadiness.js';
@@ -120,9 +120,8 @@ export function AuthPortal({ client = authClient, onAuthenticated, initialScreen
     setDigits(next.digits); otpRefs.current[next.focus]?.focus();
   }
   return <main className={`auth-portal auth-${screen.toLowerCase()}`}>
-    <div className="auth-ambient" aria-hidden="true">{AUTH_SCREENS.map(name => <div key={name} className={`auth-backdrop auth-backdrop-${name.toLowerCase()} ${screen === name ? 'is-active' : ''}`} />)}</div>
     <div className="auth-card">
-      <AuthArtwork screen={screen} />
+      <AuthArtwork />
       <section className="auth-form-panel" aria-labelledby="auth-title">
         <button className="auth-back" type="button" aria-label="Back to previous authentication screen" disabled={busy} onClick={() => navigate({ type: 'BACK' })}><ArrowLeft size={20} /></button>
         <h1 id="auth-title" ref={heading} tabIndex={-1}>{TITLES[screen]}</h1>
