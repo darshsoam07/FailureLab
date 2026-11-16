@@ -6,6 +6,11 @@ FailureLab makes reliability behavior visible: generate order traffic, inject a 
 
 The React dashboard brings together live telemetry, a topology view, traffic controls, an emergency kill switch, experiment history, and AI reports.
 
+For Google/GitHub sign-in, callback registration, backend permissions, and local
+operator setup, follow [OAuth setup](OAUTH_SETUP.md). New accounts have viewer
+access; fault and traffic controls require an operator grant. Trusted service
+calls and verification scripts require `INTERNAL_SERVICE_TOKEN`.
+
 **Stack:** Python 3.11+, FastAPI, SQLAlchemy 2.0, asyncpg, PostgreSQL, Pydantic v2, pydantic-settings, RabbitMQ, aio-pika, httpx, tenacity, Toxiproxy, React, Vite, Tailwind CSS, Lucide, and Recharts.
 
 ## Contents

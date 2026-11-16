@@ -65,15 +65,6 @@ export function DashboardView({
         buffer={buffer}
       />
 
-      {/* Mid: Topology Banner with derived health & Toxiproxy fault highlight */}
-      <TopologyBanner
-        experiment={experiment}
-        stale={isStale}
-        orderReadiness={orderReadiness}
-        controllerReadiness={controllerReadiness}
-        onNavigate={onNavigate}
-      />
-
       {/* Bottom Grid: 2/3 Latency Chart + 1/3 Traffic Control */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <LatencyChartCard
@@ -91,6 +82,17 @@ export function DashboardView({
           onToggleTraffic={onToggleTraffic}
         />
       </div>
+      {/* Mid: Topology Banner with derived health & Toxiproxy fault highlight */}
+      <TopologyBanner
+        experiment={experiment}
+        stale={isStale}
+        orderReadiness={orderReadiness}
+        controllerReadiness={controllerReadiness}
+        onNavigate={onNavigate}
+      />
+
+
     </div>
   );
 }
+

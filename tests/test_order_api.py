@@ -170,7 +170,7 @@ async def test_relay_drains_batches_immediately_and_polls_idle_quickly(monkeypat
 
 @pytest.mark.asyncio
 async def test_metrics_since_rejects_naive_or_malformed_timestamp():
-    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=main.app), base_url='http://test') as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=main.app), headers={"Authorization": "Bearer " + "test-internal-token-" * 3}, base_url='http://test') as client:
         # Override DB dependency so invalid requests cannot require infrastructure.
         async def session():
             yield MagicMock()
@@ -217,7 +217,7 @@ async def test_seed_is_insert_only(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_health_without_dependencies():
-    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=main.app), base_url="http://test") as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=main.app), headers={"Authorization": "Bearer " + "test-internal-token-" * 3}, base_url="http://test") as client:
         assert (await client.get("/health")).json() == {"status": "ok"}
         assert (await client.get("/ready")).status_code == 503
 
@@ -297,3 +297,10 @@ async def test_startup_failure_disposes_database(monkeypatch):
         async with main.lifespan(application):
             pytest.fail("startup must not succeed")
     dispose.assert_awaited_once()
+
+
+@pytest.fixture(autouse=True)
+def authenticated_internal_client(monkeypatch):
+    # Existing business-contract tests now run as an explicit internal principal.
+    # Anonymous/viewer/operator boundaries are exercised separately in test_oauth.py.
+    monkeypatch.setenv("INTERNAL_SERVICE_TOKEN", "test-internal-token-" * 3)

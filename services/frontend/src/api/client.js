@@ -13,7 +13,7 @@ export function createApiClient({ orderApiUrl, controllerApiUrl, fetchImpl = glo
     const timer = setTimeout(() => controller.abort(new Error('Request timed out')), timeoutMs);
     try {
       const response = await fetchImpl(`${base.replace(/\/$/, '')}${path}`, {
-        method, signal: controller.signal, headers: { Accept: 'application/json', ...(body !== undefined && { 'Content-Type': 'application/json' }) },
+        method, credentials: 'include', signal: controller.signal, headers: { Accept: 'application/json', 'X-FailureLab-Auth': '1', ...(body !== undefined && { 'Content-Type': 'application/json' }) },
         ...(body !== undefined && { body: JSON.stringify(body) }),
       });
       const data = response.status === 204 ? null : await response.json().catch(() => {

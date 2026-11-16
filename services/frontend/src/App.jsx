@@ -23,7 +23,7 @@ const SettingsView = lazy(() => import('./components/settings/SettingsView.jsx')
 import { appendMetricsPoint } from './lib/metricsBuffer.js';
 import { isExperimentAlreadyEndedError } from './lib/shell.js';
 
-export default function App({ client = api }) {
+export default function App({ client = api, user = null, onLogout, logoutBusy = false }) {
   const [activeScreen, setActiveScreen] = useState('dashboard');
   const [isEmergencyModalOpen, setIsEmergencyModalOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -223,7 +223,7 @@ export default function App({ client = api }) {
   const stop = id => change('stop', id);
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row antialiased font-sans">
+    <div className={`${user ? 'has-session ' : ''}min-h-screen bg-background text-foreground flex flex-col md:flex-row antialiased font-sans`}>
       <a href="#main" className="skip-link">Skip to content</a>
       {/* Desktop & Tablet Sidebar */}
       <SideNavBar
@@ -235,6 +235,9 @@ export default function App({ client = api }) {
       {/* Main Content Viewport */}
       <div className="flex-1 min-w-0 md:ml-16 lg:ml-64 flex flex-col min-h-screen">
         <TopNavBar
+          user={user}
+          onLogout={onLogout}
+          logoutBusy={logoutBusy}
           activeScreen={activeScreen}
           activeExperiment={experiment}
           controllerReadiness={controllerReadiness.error ? null : controllerReadiness.data}

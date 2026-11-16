@@ -108,7 +108,7 @@ async def test_inventory_http_validation_and_fault_config():
 
     main.app.dependency_overrides[get_db_session] = dependency
     try:
-        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=main.app), base_url="http://test") as client:
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=main.app), headers={"Authorization": "Bearer " + "test-internal-token-" * 3}, base_url="http://test") as client:
             assert (await client.get("/health")).status_code == 200
             assert (await client.get("/ready")).status_code == 503
             assert (await client.post("/api/inventory/reserve", json=body.model_dump(mode="json"))).status_code == 422
@@ -120,3 +120,10 @@ async def test_inventory_http_validation_and_fault_config():
             await client.post("/api/inventory/fault-config", json={"error_rate_percent": 0})
     finally:
         main.app.dependency_overrides.clear()
+
+
+@pytest.fixture(autouse=True)
+def authenticated_internal_client(monkeypatch):
+    # Existing business-contract tests now run as an explicit internal principal.
+    # Anonymous/viewer/operator boundaries are exercised separately in test_oauth.py.
+    monkeypatch.setenv("INTERNAL_SERVICE_TOKEN", "test-internal-token-" * 3)

@@ -1,5 +1,7 @@
 """Durable experiment lifecycle, deterministic SLO checks, and event delivery."""
 
+from services.common.authorization import internal_headers
+
 import asyncio
 import json
 import logging
@@ -143,7 +145,7 @@ class ExperimentController:
         async with asyncio.timeout(self.timeout_seconds):
             response = await self.http.post(
                 self.inventory_api_url + "/api/inventory/fault-config",
-                json={"error_rate_percent": percent}, timeout=self.timeout_seconds,
+                headers=internal_headers(), json={"error_rate_percent": percent}, timeout=self.timeout_seconds,
             )
             response.raise_for_status()
 
@@ -254,7 +256,7 @@ class ExperimentController:
 
     async def fetch_metrics(self, since: datetime) -> OrderMetrics:
         async with asyncio.timeout(self.timeout_seconds):
-            response = await self.http.get(self.order_api_url + "/api/orders/metrics-summary",
+            response = await self.http.get(self.order_api_url + "/api/orders/metrics-summary", headers=internal_headers(),
                                            params={"since": since.isoformat()}, timeout=self.timeout_seconds)
             response.raise_for_status()
             return OrderMetrics.model_validate(response.json())

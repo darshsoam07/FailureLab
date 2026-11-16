@@ -1,14 +1,17 @@
 """Environment-only configuration shared by FailureLab services."""
 
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
 from pydantic import AnyHttpUrl, AmqpDsn, PostgresDsn, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
+
 
 class BaseAppSettings(BaseSettings):
-    model_config = SettingsConfigDict(case_sensitive=True, extra="ignore")
+    model_config = SettingsConfigDict(case_sensitive=True, extra="ignore", env_file=ENV_FILE, env_file_encoding="utf-8", env_ignore_empty=True)
 
     DATABASE_URL: PostgresDsn
     RABBITMQ_URL: AmqpDsn

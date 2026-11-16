@@ -26,10 +26,10 @@ function contrast(a, b) {
   return (high + .05) / (low + .05);
 }
 
-test('Terminal Neon palette and utility roles share one source of truth', () => {
-  assert.equal(light.background, '#E9E9E9');
-  assert.equal(light['surface-dark'], '#122023');
-  assert.equal(light.primary, '#E1FCAD');
+test('FailureLab palette and utility roles share one source of truth', () => {
+  assert.equal(light.background, '#F0EDE5');
+  assert.equal(light['surface-dark'], '#203C32');
+  assert.equal(light.primary, '#EBC89A');
   for (const [role, value] of Object.entries(theme.theme.extend.colors)) {
     assert.ok(light[role], `Missing ${role}`);
     assert.equal(value, `var(--${role})`);

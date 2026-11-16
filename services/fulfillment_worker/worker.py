@@ -17,7 +17,8 @@ from uuid import UUID
 import aio_pika
 import httpx
 from aio_pika.abc import AbstractIncomingMessage
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
+from services.common.authorization import authorize
 from fastapi.responses import JSONResponse
 from pydantic import Field, ValidationError
 from sqlalchemy import select, text
@@ -205,7 +206,7 @@ async def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@app.get("/worker-stats")
+@app.get("/worker-stats", dependencies=[Depends(authorize)])
 async def worker_stats(request: Request) -> JSONResponse:
     worker = getattr(request.app.state, "worker", None)
     if worker is None:

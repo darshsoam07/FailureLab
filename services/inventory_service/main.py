@@ -1,5 +1,7 @@
 """Atomic inventory reservations and process-local experiment fault injection."""
 
+from services.common.authorization import authorize
+
 import asyncio
 import hashlib
 import logging
@@ -59,7 +61,7 @@ async def lifespan(application: FastAPI):
         await close_db()
 
 
-app = FastAPI(title="FailureLab Inventory Service", lifespan=lifespan)
+app = FastAPI(dependencies=[Depends(authorize)], title="FailureLab Inventory Service", lifespan=lifespan)
 DBSession = Annotated[AsyncSession, Depends(get_db_session)]
 IdempotencyKey = Annotated[str, Header(alias="X-Idempotency-Key", min_length=1, max_length=255, pattern=r"^\S+$")]
 

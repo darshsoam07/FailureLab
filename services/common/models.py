@@ -5,9 +5,9 @@ from enum import StrEnum
 from typing import Any
 from uuid import UUID, uuid4
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, Enum, Float, ForeignKey, Integer, String, Text, func, text
+from sqlalchemy import Boolean, CheckConstraint, DateTime, Enum, Float, ForeignKey, Integer, MetaData, String, Text, func, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from .database import Base
 
@@ -132,3 +132,71 @@ class AIReport(Base):
     recommended_fix: Mapped[str] = mapped_column(Text)
     next_experiment_proposal: Mapped[dict[str, Any]] = mapped_column(JSONB)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class AuthBase(DeclarativeBase):
+    """Controller-owned auth tables; reliability services keep their seven-table schema."""
+
+    metadata = MetaData(naming_convention=Base.metadata.naming_convention)
+
+
+class User(AuthBase):
+    __tablename__ = "auth_users"
+
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
+    email: Mapped[str] = mapped_column(String(254), unique=True)
+    first_name: Mapped[str] = mapped_column(String(100))
+    last_name: Mapped[str] = mapped_column(String(100))
+    password_hash: Mapped[str | None] = mapped_column(Text)
+    password_history: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    failed_login_attempts: Mapped[int] = mapped_column(Integer, default=0)
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class PasswordResetCode(AuthBase):
+    __tablename__ = "password_reset_codes"
+
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("auth_users.id", ondelete="CASCADE"), index=True)
+    code_hash: Mapped[str] = mapped_column(String(64))
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    consumed: Mapped[bool] = mapped_column(Boolean, default=False)
+    reset_token_hash: Mapped[str | None] = mapped_column(String(64))
+
+
+class AuthSession(AuthBase):
+    __tablename__ = "auth_sessions"
+
+    token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("auth_users.id", ondelete="CASCADE"), index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class ProviderIdentity(AuthBase):
+    __tablename__ = "auth_provider_identities"
+    provider: Mapped[str] = mapped_column(String(16), primary_key=True)
+    subject: Mapped[str] = mapped_column(String(255), primary_key=True)
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("auth_users.id", ondelete="CASCADE"), index=True)
+
+
+class OAuthTransaction(AuthBase):
+    __tablename__ = "auth_oauth_transactions"
+    state_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    browser_hash: Mapped[str] = mapped_column(String(64))
+    provider: Mapped[str] = mapped_column(String(16))
+    verifier: Mapped[str] = mapped_column(String(128))
+    nonce: Mapped[str] = mapped_column(String(64))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    link_user_id: Mapped[UUID | None] = mapped_column(ForeignKey("auth_users.id", ondelete="CASCADE"))
+    session_hash: Mapped[str | None] = mapped_column(String(64))
+
+
+class OperatorRole(AuthBase):
+    """Explicit, operator-managed grants. Signup can never assign this role."""
+    __tablename__ = "auth_operator_roles"
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("auth_users.id", ondelete="CASCADE"), primary_key=True)
